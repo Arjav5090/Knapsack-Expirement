@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Clock, Target, TrendingDown } from "lucide-react"
+import { Clock, Target, Star, ChevronLeft, ChevronRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
 
@@ -15,10 +15,10 @@ interface PredictionPhaseProps {
   updateParticipantData: (data: any) => void
 }
 
-// Generate 30 questions in descending difficulty order (Hard → Medium → Easy)
+// Generate 30 questions in mixed difficulty order
 const generatePredictionQuestions = () => {
   const hardQuestions = Array.from({ length: 10 }, (_, i) => ({
-    id: i + 1,
+    id: i * 3 + 1,
     capacity: 35 + i * 2,
     balls: [
       { id: 1, weight: 20 + i, reward: 60 + i * 3, color: "bg-red-500" },
@@ -33,7 +33,7 @@ const generatePredictionQuestions = () => {
   }))
 
   const mediumQuestions = Array.from({ length: 10 }, (_, i) => ({
-    id: i + 11,
+    id: i * 3 + 2,
     capacity: 20 + i,
     balls: [
       { id: 1, weight: 10 + i, reward: 30 + i * 2, color: "bg-orange-500" },
@@ -47,7 +47,7 @@ const generatePredictionQuestions = () => {
   }))
 
   const easyQuestions = Array.from({ length: 10 }, (_, i) => ({
-    id: i + 21,
+    id: i * 3 + 3,
     capacity: 12 + i,
     balls: [
       { id: 1, weight: 6 + i, reward: 18 + i, color: "bg-indigo-500" },
@@ -58,19 +58,28 @@ const generatePredictionQuestions = () => {
     difficulty: "easy",
   }))
 
-  return [...hardQuestions, ...mediumQuestions, ...easyQuestions]
+  // Create HME pattern: Hard-Medium-Easy repeated
+  const questions = []
+  for (let i = 0; i < 5; i++) {
+    questions.push(hardQuestions[i])
+    questions.push(mediumQuestions[i])
+    questions.push(easyQuestions[i])
+  }
+
+  return questions
 }
 
 export default function PredictionPhase({ onNext, updateParticipantData }: PredictionPhaseProps) {
   const [questions] = useState(generatePredictionQuestions())
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<
-    Array<{ questionId: number; selected: number[]; correct: boolean; timeSpent: number }>
-  >([])
+  const [answers, setAnswers] = useState<{
+    [key: number]: { selected: number[]; confirmed: boolean; correct: boolean }
+  }>({})
+  const [starredQuestions, setStarredQuestions] = useState<Set<number>>(new Set())
   const [showInstructions, setShowInstructions] = useState(true)
   const [timeLeft, setTimeLeft] = useState(20 * 60) // 20 minutes
-  const [questionStartTime, setQuestionStartTime] = useState<number>(0)
   const [isComplete, setIsComplete] = useState(false)
+  const [showFinishWarning, setShowFinishWarning] = useState(false)
 
   // Timer
   useEffect(() => {
@@ -90,62 +99,59 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
   }, [showInstructions, timeLeft, isComplete])
 
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
-    const timeSpent = Date.now() - questionStartTime
-    const newAnswer = {
-      questionId: questions[currentQuestion].id,
-      selected: selectedBalls,
-      correct: isCorrect,
-      timeSpent: Math.round(timeSpent / 1000),
-    }
-
-    setAnswers((prev) => [...prev, newAnswer])
-    nextQuestion()
+    const questionId = questions[currentQuestion].id
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: {
+        selected: selectedBalls,
+        confirmed: true,
+        correct: isCorrect,
+      },
+    }))
   }
 
   const handleTimeUp = () => {
-    if (currentQuestion < questions.length) {
-      // Mark remaining questions as unanswered
-      const remainingQuestions = questions.slice(currentQuestion).map((q) => ({
-        questionId: q.id,
-        selected: [],
-        correct: false,
-        timeSpent: 0,
-      }))
-      setAnswers((prev) => [...prev, ...remainingQuestions])
-    }
-    completePhase()
+    completeTest()
   }
 
-  const nextQuestion = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-      setQuestionStartTime(Date.now())
-    } else {
-      completePhase()
-    }
-  }
-
-  const completePhase = () => {
+  const completeTest = () => {
     setIsComplete(true)
-    const correctAnswers = answers.filter((a) => a.correct).length
-    const unansweredQuestions = answers.filter((a) => a.selected.length === 0).length
-    const totalPoints = correctAnswers * 2 + unansweredQuestions * 1
+    const correctAnswers = Object.values(answers).filter((a) => a.confirmed && a.correct).length
+    const confirmedAnswers = Object.values(answers).filter((a) => a.confirmed).length
+    const unansweredQuestions = questions.length - confirmedAnswers
+    const performanceScore = correctAnswers
 
     updateParticipantData({
       prediction: {
         completed: true,
         correctAnswers,
         totalQuestions: questions.length,
-        totalPoints,
+        performanceScore,
         timeUsed: 20 * 60 - timeLeft,
         answers,
       },
     })
+    onNext()
+  }
+
+  const toggleStar = (questionIndex: number) => {
+    setStarredQuestions((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(questionIndex)) {
+        newSet.delete(questionIndex)
+      } else {
+        newSet.add(questionIndex)
+      }
+      return newSet
+    })
+  }
+
+  const navigateToQuestion = (index: number) => {
+    setCurrentQuestion(index)
   }
 
   const startPhase = () => {
     setShowInstructions(false)
-    setQuestionStartTime(Date.now())
   }
 
   const formatTime = (seconds: number) => {
@@ -165,54 +171,34 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-6">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-red-800 mb-4">Final Assessment Phase</h3>
+          <CardContent className="space-y-8">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-8">
+              <h3 className="text-2xl font-semibold text-red-800 mb-6">Final Test</h3>
 
-              <div className="space-y-4 text-red-700">
-                <p>
-                  This is the final test with <strong>30 knapsack questions</strong> for chances to win a prize. You
-                  have exactly <strong>20 minutes</strong> to complete the test.
+              <div className="space-y-6 text-red-700">
+                <p className="text-lg">
+                  Welcome to the final test! You will see <strong>15 knapsack questions</strong> with the same
+                  format as test 2 (the last test you took). As usual, we do NOT expect you 
+                  to finish every question in the time given, so plan your time accordingly.
                 </p>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2 flex items-center">
-                      <TrendingDown className="h-4 w-4 mr-2" />
-                      Question Order
-                    </h4>
-                    <ul className="text-sm space-y-1">
-                      <li>
-                        • Questions 1-10: <strong>Hard</strong> difficulty
-                      </li>
-                      <li>
-                        • Questions 11-20: <strong>Medium</strong> difficulty
-                      </li>
-                      <li>
-                        • Questions 21-30: <strong>Easy</strong> difficulty
-                      </li>
-                      <li>• Strictly descending difficulty order</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2 flex items-center">
-                      <Clock className="h-4 w-4 mr-2" />
-                      Test Rules
-                    </h4>
-                    <ul className="text-sm space-y-1">
-                      <li>• 20 minutes total time limit</li>
-                      <li>• Linear progression through questions</li>
-                      <li>• Same scoring as benchmark test</li>
-                      <li>• Performance affects prize chances</li>
-                    </ul>
-                  </div>
+                <div className="bg-white p-6 rounded-lg border-2 border-red-200">
+                                <h4 className="text-lg font-semibold mb-4 flex items-center">
+                <Clock className="h-5 w-5 mr-2" />
+                Assessment
+              </h4>
+              <ul className="text-base space-y-2">
+                <li>• <strong>Correct answers</strong>: Contribute to your performance assessment</li>
+                <li>• <strong>Incorrect answers</strong>: Do not contribute to your assessment</li>
+                <li>• <strong>Unanswered questions</strong>: Considered neutral</li>
+                <li>• Must confirm answers to count</li>
+              </ul>
                 </div>
 
-                <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4">
-                  <p className="text-yellow-800 font-medium">
-                    💡 <strong>Strategy Note:</strong> Questions start very difficult and get easier. Consider your time
-                    allocation carefully - easier questions are at the end!
+                <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-6">
+                  <p className="text-lg text-yellow-800 font-medium">
+                    💡 <strong>Strategy Note:</strong> The test is long, and you are NOT expected to finish every question. Plan your time
+                    accordingly and focus on questions you can solve accurately.
                   </p>
                 </div>
               </div>
@@ -231,10 +217,11 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
   }
 
   if (isComplete) {
-    const correctAnswers = answers.filter((a) => a.correct).length
-    const unansweredQuestions = answers.filter((a) => a.selected.length === 0).length
-    const incorrectAnswers = answers.filter((a) => a.selected.length > 0 && !a.correct).length
-    const totalPoints = correctAnswers * 2 + unansweredQuestions * 1
+    const correctAnswers = Object.values(answers).filter((a) => a.confirmed && a.correct).length
+    const confirmedAnswers = Object.values(answers).filter((a) => a.confirmed).length
+    const unansweredQuestions = questions.length - confirmedAnswers
+    const incorrectAnswers = Object.values(answers).filter((a) => a.confirmed && !a.correct).length
+    const performanceScore = correctAnswers
 
     return (
       <div className="max-w-4xl mx-auto">
@@ -248,37 +235,37 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
 
           <CardContent className="space-y-6">
             <div className="text-center">
-              <div className="bg-gradient-to-r from-red-50 to-orange-50 p-8 rounded-xl">
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-8 rounded-xl">
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">Your Final Performance</h3>
 
                 <div className="grid md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="text-3xl font-bold text-green-600">{correctAnswers}</div>
+                    <div className="text-3xl font-bold text-emerald-600">{correctAnswers}</div>
                     <div className="text-sm text-gray-600">Correct</div>
                   </div>
 
                   <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="text-3xl font-bold text-yellow-600">{unansweredQuestions}</div>
+                    <div className="text-3xl font-bold text-amber-600">{unansweredQuestions}</div>
                     <div className="text-sm text-gray-600">Unanswered</div>
                   </div>
 
                   <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="text-3xl font-bold text-red-600">{incorrectAnswers}</div>
+                    <div className="text-3xl font-bold text-rose-600">{incorrectAnswers}</div>
                     <div className="text-sm text-gray-600">Incorrect</div>
                   </div>
 
-                  <div className="bg-white p-4 rounded-lg shadow-sm border-2 border-red-500">
-                    <div className="text-3xl font-bold text-red-600">{totalPoints}</div>
-                    <div className="text-sm text-gray-600">Total Points</div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border-2 border-teal-500">
+                                    <div className="text-3xl font-bold text-teal-600">{performanceScore}</div>
+                <div className="text-sm text-gray-600">Performance Score</div>
                   </div>
                 </div>
 
-                <div className="bg-red-100 border border-red-300 rounded-lg p-4 mb-6">
-                  <p className="text-red-800 font-medium">
-                    You earned <strong>{totalPoints} probability points</strong> from this test!
+                <div className="bg-teal-100 border border-teal-300 rounded-lg p-4 mb-6">
+                  <p className="text-teal-800 font-medium">
+                    You completed the test with a performance score of <strong>{performanceScore}</strong>!
                   </p>
-                  <p className="text-red-700 text-sm mt-1">
-                    Performance from one of your tests will be randomly selected for the final prize calculation.
+                  <p className="text-teal-700 text-sm mt-1">
+                    Thank you for participating in this study.
                   </p>
                 </div>
 
@@ -294,88 +281,223 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
   }
 
   const question = questions[currentQuestion]
-  const progress = ((currentQuestion + 1) / questions.length) * 100
-  const difficultyColor = {
-    easy: "bg-green-500",
-    medium: "bg-yellow-500",
-    hard: "bg-red-500",
-  }[question.difficulty]
-
-  // Determine current difficulty section
-  let sectionInfo = ""
-  if (currentQuestion < 10) {
-    sectionInfo = `Hard Section (${currentQuestion + 1}/10)`
-  } else if (currentQuestion < 20) {
-    sectionInfo = `Medium Section (${currentQuestion - 9}/10)`
-  } else {
-    sectionInfo = `Easy Section (${currentQuestion - 19}/10)`
-  }
+  const currentAnswer = answers[question.id]
+  const progress =
+    (Object.keys(answers).filter((k) => answers[Number.parseInt(k)].confirmed).length / questions.length) * 100
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Timer and Progress */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium">
-                Question {currentQuestion + 1} of {questions.length}
-              </span>
-              <Badge className={`text-white ${difficultyColor}`}>{question.difficulty.toUpperCase()}</Badge>
-              <Badge variant="outline">{sectionInfo}</Badge>
-            </div>
+    <div className="max-w-7xl mx-auto">
+      {/* Top Section with Finish Button */}
+      <div className="mb-6 flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <h2 className="text-2xl font-bold text-gray-900">Final Test</h2>
+          <div className={`px-3 py-2 rounded-lg text-lg font-mono font-bold ${
+            timeLeft <= 300 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+          }`}>
+            {formatTime(timeLeft)}
+          </div>
+        </div>
+        <Button onClick={() => setShowFinishWarning(true)} variant="outline" className="bg-red-50 hover:bg-red-100 border-red-200">
+          Finish Test Early
+        </Button>
+      </div>
 
-            <div
-              className={`flex items-center space-x-2 px-3 py-1 rounded-lg ${
-                timeLeft <= 300 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-              }`}
-            >
-              <Clock className="h-4 w-4" />
-              <span className="font-mono font-bold">{formatTime(timeLeft)}</span>
+      {/* Top Navigation Panel */}
+      <Card className="mb-6">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-semibold">Question Navigation</h3>
+              <div className="flex items-center space-x-4 mt-2">
+                <span className="text-sm text-gray-600">
+                  {Object.keys(answers).filter((k) => answers[Number.parseInt(k)].confirmed).length} / {questions.length} completed
+                </span>
+                <Progress value={progress} className="h-2 w-32" />
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-4">
+          {/* Horizontal Scrollable Question Numbers */}
+          <div className="relative">
+            <div className="flex space-x-3 overflow-x-auto pb-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              {questions.map((q, index) => {
+                const isActive = index === currentQuestion
+                const isAnswered = answers[q.id]?.confirmed
+                const isStarred = starredQuestions.has(index)
+
+                return (
+                  <div key={q.id} className="relative flex-shrink-0">
+                    <button
+                      onClick={() => navigateToQuestion(index)}
+                      className={`
+                        relative w-14 h-14 flex items-center justify-center font-bold text-lg rounded-xl transition-all duration-200 border-2
+                        ${
+                          isActive
+                            ? "bg-blue-500 text-white shadow-lg scale-110 border-blue-600"
+                            : isAnswered
+                              ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-300"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300"
+                        }
+                      `}
+                    >
+                      {index + 1}
+                    </button>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleStar(index)
+                      }}
+                      className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${
+                        isStarred ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-400 hover:bg-gray-300"
+                      }`}
+                    >
+                      <Star className="h-3 w-3" fill={isStarred ? "currentColor" : "none"} />
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
-          <Progress value={progress} className="h-2" />
-
-          {timeLeft <= 300 && (
-            <div className="mt-2 text-center">
-              <Badge variant="destructive" className="animate-pulse">
-                Less than 5 minutes remaining!
-              </Badge>
+          {/* Legend */}
+          <div className="mt-4 pt-4 border-t">
+            <div className="flex flex-wrap items-center gap-6 text-sm">
+              <span className="font-medium text-gray-700">Legend:</span>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-blue-500 rounded border-2 border-blue-600"></div>
+                <span>Current</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
+                <span>Completed</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded"></div>
+                <span>Not answered</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <Star className="w-2 h-2 text-white fill-current" />
+                </div>
+                <span>Starred</span>
+              </div>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Difficulty Indicator */}
-      <div className="bg-gradient-to-r from-red-100 via-yellow-100 to-green-100 border rounded-lg p-3">
-        <div className="flex items-center justify-center space-x-6 text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded"></div>
-            <span className={currentQuestion < 10 ? "font-bold" : ""}>Hard (1-10)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-            <span className={currentQuestion >= 10 && currentQuestion < 20 ? "font-bold" : ""}>Medium (11-20)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
-            <span className={currentQuestion >= 20 ? "font-bold" : ""}>Easy (21-30)</span>
-          </div>
-        </div>
+      {/* Main Question Area */}
+      <div className="space-y-6">
+          <Card>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <h3 className="text-2xl font-bold">
+                  Question {currentQuestion + 1} of {questions.length}
+                </h3>
+                {currentAnswer?.confirmed && <Badge variant="secondary" className="bg-green-100 text-green-800">✓ Confirmed</Badge>}
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {/* Warning for unconfirmed answers */}
+            {!currentAnswer?.confirmed && (
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 font-medium">
+                  ⚠️ Remember to confirm your answer if you wish to submit it! Unconfirmed answers are considered unanswered.
+                </p>
+              </div>
+            )}
+
+            <KnapsackQuestion
+              question={question}
+              onAnswer={handleAnswer}
+              isInteractive={!currentAnswer?.confirmed}
+              isTestMode={true}
+              initialSelection={currentAnswer?.selected || []}
+              isConfirmed={currentAnswer?.confirmed || false}
+            />
+
+            {currentAnswer?.confirmed && (
+              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800 font-medium">
+                  ✓ Answer confirmed. You can still view this question but cannot change your answer.
+                </p>
+              </div>
+            )}
+
+            {/* Navigation buttons at bottom */}
+            <div className="flex justify-between items-center mt-8 pt-6 border-t">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => navigateToQuestion(Math.max(0, currentQuestion - 1))}
+                disabled={currentQuestion === 0}
+                className="flex items-center space-x-2"
+              >
+                <ChevronLeft className="h-5 w-5" />
+                <span>Previous</span>
+              </Button>
+              <div className="text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
+                Question {currentQuestion + 1} of {questions.length}
+              </div>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => navigateToQuestion(Math.min(questions.length - 1, currentQuestion + 1))}
+                disabled={currentQuestion === questions.length - 1}
+                className="flex items-center space-x-2"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Question */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={`question-${currentQuestion}`}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-        >
-          <KnapsackQuestion question={question} onAnswer={handleAnswer} isInteractive={true} />
-        </motion.div>
-      </AnimatePresence>
+      {/* Finish Early Warning Dialog */}
+      {showFinishWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="max-w-md mx-4">
+            <CardHeader>
+              <CardTitle className="text-center text-red-600">Finish Test Early?</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center space-y-3">
+                <p className="text-gray-700">
+                  <strong>There is still time remaining!</strong> Please confirm that you would like to end the test early.
+                </p>
+                <p className="text-sm text-gray-600">
+                  Please remember to confirm all questions you wish to answer!
+                </p>
+              </div>
+              <div className="flex space-x-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowFinishWarning(false)}
+                  className="flex-1"
+                >
+                  Continue Test
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowFinishWarning(false)
+                    completeTest()
+                  }}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  End Early
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

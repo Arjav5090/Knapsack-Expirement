@@ -15,9 +15,7 @@ interface ResultsPhaseProps {
 }
 
 export default function ResultsPhase({ participantData }: ResultsPhaseProps) {
-  const [showPrizeResult, setShowPrizeResult] = useState(false)
-  const [selectedTest, setSelectedTest] = useState<"training2" | "benchmark" | "prediction">("training2")
-  const [prizeWon, setPrizeWon] = useState(false)
+
 
   // Calculate total performance
   const training1 = participantData.training1 || { correctAnswers: 0, totalQuestions: 6, accuracy: 0 }
@@ -27,39 +25,7 @@ export default function ResultsPhase({ participantData }: ResultsPhaseProps) {
 
   const totalPoints = participantData.totalPoints || 0
 
-  // Simulate prize determination
-  useEffect(() => {
-    // Randomly select which test counts for prize
-    const tests = ["training2", "benchmark", "prediction"] as const
-    const randomTest = tests[Math.floor(Math.random() * tests.length)]
-    setSelectedTest(randomTest)
 
-    // Determine if prize is won based on selected test points
-    const testData = participantData[randomTest]
-    if (testData && testData.totalPoints) {
-      const winChance = testData.totalPoints / 100 // Convert points to percentage
-      setPrizeWon(Math.random() < winChance)
-    }
-  }, [participantData])
-
-  const handleRevealPrize = () => {
-    setShowPrizeResult(true)
-  }
-
-  const getTestName = (test: string) => {
-    switch (test) {
-      case "training2":
-        return "Skills Assessment"
-      case "benchmark":
-        return "Benchmark Test"
-      case "prediction":
-        return "Final Test"
-      default:
-        return test
-    }
-  }
-
-  const selectedTestData = participantData[selectedTest] || { totalPoints: 0 }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -198,82 +164,25 @@ export default function ResultsPhase({ participantData }: ResultsPhaseProps) {
         </Card>
       </div>
 
-      {/* Prize Section */}
-      <Card className="shadow-lg bg-gradient-to-br from-yellow-50 to-orange-50">
+      {/* Study Completion */}
+      <Card className="shadow-lg bg-gradient-to-br from-green-50 to-blue-50">
         <CardHeader>
           <CardTitle className="flex items-center justify-center text-2xl">
-            <Gift className="h-8 w-8 mr-3 text-yellow-600" />
-            Prize Determination
+            <Sparkles className="h-8 w-8 mr-3 text-green-600" />
+            Study Complete
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-6">
-          {!showPrizeResult ? (
-            <div className="text-center space-y-4">
-              <div className="bg-white p-6 rounded-lg border-2 border-yellow-200">
-                <h3 className="text-lg font-semibold mb-4">
-                  Your prize chances are determined by one randomly selected test:
-                </h3>
-
-                <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4 mb-4">
-                  <p className="font-medium text-yellow-800">
-                    Selected Test: <strong>{getTestName(selectedTest)}</strong>
-                  </p>
-                  <p className="text-yellow-700 text-sm mt-1">
-                    Points from this test: <strong>{selectedTestData.totalPoints}</strong>
-                  </p>
-                  <p className="text-yellow-700 text-sm">
-                    Win probability: <strong>{selectedTestData.totalPoints}%</strong>
-                  </p>
-                </div>
-
-                <Button
-                  onClick={handleRevealPrize}
-                  size="lg"
-                  className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
-                >
-                  <Sparkles className="h-5 w-5 mr-2" />
-                  Reveal Prize Result
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center space-y-6"
-            >
-              <div
-                className={`p-8 rounded-xl border-4 ${
-                  prizeWon ? "bg-green-100 border-green-500" : "bg-blue-100 border-blue-500"
-                }`}
-              >
-                {prizeWon ? (
-                  <div className="space-y-4">
-                    <Trophy className="h-16 w-16 text-yellow-500 mx-auto" />
-                    <h3 className="text-3xl font-bold text-green-800">🎉 Congratulations! 🎉</h3>
-                    <p className="text-xl text-green-700">You won the prize!</p>
-                    <p className="text-green-600">
-                      Based on your {selectedTestData.totalPoints}% chance from the {getTestName(selectedTest)}, you
-                      have successfully won the reward!
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <Gift className="h-16 w-16 text-blue-500 mx-auto" />
-                    <h3 className="text-2xl font-bold text-blue-800">Thank you for participating!</h3>
-                    <p className="text-xl text-blue-700">
-                      While you didn't win this time, your contribution to research is valuable.
-                    </p>
-                    <p className="text-blue-600">
-                      Your {selectedTestData.totalPoints}% chance from the {getTestName(selectedTest)}
-                      didn't result in a win this time, but you performed excellently!
-                    </p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
+        <CardContent className="text-center space-y-6">
+          <div className="bg-white p-6 rounded-lg border-2 border-green-200">
+            <h3 className="text-lg font-semibold mb-4 text-green-800">
+              Thank you for your valuable contribution to our research!
+            </h3>
+            <p className="text-green-700">
+              Your participation helps us understand how people approach complex problem-solving tasks.
+              All data collected will be used to advance research in cognitive science and algorithm design.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

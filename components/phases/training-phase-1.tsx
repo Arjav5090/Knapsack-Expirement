@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Target, CheckCircle, XCircle, RotateCcw } from "lucide-react"
+import { Target, CheckCircle, XCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
 
@@ -74,8 +74,8 @@ const practiceQuestions = [
       { id: 4, weight: 4, reward: 12, color: "bg-yellow-500" },
       { id: 5, weight: 12, reward: 36, color: "bg-purple-500" },
     ],
-    solution: [2, 3, 4],
-    explanation: "Select balls 2, 3, and 4 for total weight 18 and reward 54.",
+    solution: [2, 5],
+    explanation: "Select balls 2 and 5 for total weight 20 and reward 60.",
   },
   {
     id: 6,
@@ -93,6 +93,34 @@ const practiceQuestions = [
   },
 ]
 
+const extraPracticeQuestions = [
+  {
+    id: 6,
+    capacity: 18,
+    balls: [
+      { id: 1, weight: 10, reward: 32, color: "bg-violet-500" },
+      { id: 2, weight: 7, reward: 21, color: "bg-emerald-500" },
+      { id: 3, weight: 8, reward: 25, color: "bg-amber-500" },
+      { id: 4, weight: 5, reward: 15, color: "bg-sky-500" },
+    ],
+    solution: [1, 2],
+    explanation: "Select balls 1 and 2 for total weight 17 and reward 53.",
+  },
+  {
+    id: 7,
+    capacity: 25,
+    balls: [
+      { id: 1, weight: 15, reward: 45, color: "bg-lime-500" },
+      { id: 2, weight: 12, reward: 36, color: "bg-rose-500" },
+      { id: 3, weight: 8, reward: 24, color: "bg-cyan-500" },
+      { id: 4, weight: 6, reward: 18, color: "bg-fuchsia-500" },
+      { id: 5, weight: 4, reward: 12, color: "bg-slate-500" },
+    ],
+    solution: [1, 3, 5],
+    explanation: "Select balls 1, 3, and 5 for total weight 27 and reward 81. Wait, that exceeds capacity! The correct solution is balls 1 and 3 for weight 23 and reward 69.",
+  },
+]
+
 export default function TrainingPhase1({ onNext, updateParticipantData }: TrainingPhase1Props) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Array<{ questionId: number; selected: number[]; correct: boolean }>>([])
@@ -100,10 +128,12 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
   const [lastAnswer, setLastAnswer] = useState<{ selected: number[]; correct: boolean } | null>(null)
   const [showInstructions, setShowInstructions] = useState(true)
   const [wantMorePractice, setWantMorePractice] = useState<boolean | null>(null)
+  const [isExtraPractice, setIsExtraPractice] = useState(false)
+  const [allQuestions, setAllQuestions] = useState(practiceQuestions)
 
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
     const newAnswer = {
-      questionId: practiceQuestions[currentQuestion].id,
+      questionId: allQuestions[currentQuestion].id,
       selected: selectedBalls,
       correct: isCorrect,
     }
@@ -117,12 +147,20 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
     setShowFeedback(false)
     setLastAnswer(null)
 
-    if (currentQuestion < practiceQuestions.length - 1) {
+    if (currentQuestion < allQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
     } else {
       // Show completion screen
       setWantMorePractice(false)
     }
+  }
+
+  const startExtraPractice = () => {
+    setWantMorePractice(true)
+    setIsExtraPractice(true)
+    setAllQuestions([...practiceQuestions, ...extraPracticeQuestions])
+    setCurrentQuestion(practiceQuestions.length) // Start from first extra question
+    setWantMorePractice(null) // Reset to show questions again
   }
 
   const handleComplete = () => {
@@ -149,41 +187,34 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-6">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-green-800 mb-4">Welcome to the Practice Section!</h3>
+          <CardContent className="space-y-8">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-8">
+              <h3 className="text-2xl font-semibold text-green-800 mb-6">Welcome to the Practice Section!</h3>
 
-              <div className="space-y-4 text-green-700">
-                <p>
+              <div className="space-y-6 text-green-700">
+                <p className="text-lg">
                   In this section, you can practice with sample questions. You will see a total of
                   <strong> 6 questions</strong> to help you get familiar with the knapsack puzzle.
                 </p>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2">📚 Learning Features</h4>
-                    <ul className="text-sm space-y-1">
-                      <li>• Immediate feedback after each answer</li>
-                      <li>• See the correct solution and explanation</li>
-                      <li>• No time pressure - take your time</li>
-                      <li>• Questions ordered from easy to hard</li>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-lg">
+                    <h4 className="text-lg font-semibold mb-4">📚 Learning Features</h4>
+                    <ul className="text-base space-y-2">
+                      <li>• When you answer a question, you will see the solution and an explanation.</li>
+                      <li>• No time constraint for you to finish questions, so take your time!</li>
                     </ul>
                   </div>
 
-                  <div className="bg-white p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2">🎯 Your Goal</h4>
-                    <ul className="text-sm space-y-1">
-                      <li>• Click balls to select/deselect them</li>
-                      <li>• Maximize reward without exceeding capacity</li>
-                      <li>• Click "Confirm Answer" when ready</li>
-                      <li>• Learn from the explanations provided</li>
+                  <div className="bg-white p-6 rounded-lg">
+                    <h4 className="text-lg font-semibold mb-4">🎯 For Every Question</h4>
+                    <ul className="text-base space-y-2">
+                      <li>• Click once to select a ball, click on a selected ball again to deselect.</li>
+                      <li>• Find the combination of selected balls that maximizes the reward while keeping combined weights below capacity.</li>
+                      <li>• Once you think you have the right selection, click "confirm answer" to lock in your selection.</li>
                     </ul>
                   </div>
                 </div>
-
-                <p className="text-center font-medium">
-                  After completing all questions, you can request additional practice if needed.
-                </p>
               </div>
             </div>
 
@@ -215,7 +246,7 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
           <CardContent className="space-y-6">
             <div className="text-center">
               <div className="bg-gradient-to-r from-blue-50 to-green-50 p-8 rounded-xl">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Great job on completing the practice!</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">Congratulations! You have completed the training.</h3>
 
                 <div className="grid md:grid-cols-3 gap-6 mb-6">
                   <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -234,28 +265,28 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
                   </div>
                 </div>
 
-                <p className="text-gray-700 mb-6">
-                  You've completed all practice questions. Would you like additional practice before moving to the next
-                  phase?
-                </p>
+                <div className="bg-white p-6 rounded-lg border-2 border-blue-200 mb-6">
+                  <p className="text-lg text-gray-800 mb-4">
+                    You should now know how to complete knapsack problems effectively.
+                  </p>
+                  <p className="text-base text-gray-700">
+                    From this point on, you will be faced with different tests that are all on completing knapsack problems.
+                  </p>
+                </div>
 
-                <div className="flex justify-center space-x-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      // Reset for more practice
-                      setCurrentQuestion(0)
-                      setAnswers([])
-                      setWantMorePractice(null)
-                      setShowFeedback(false)
-                      setLastAnswer(null)
-                    }}
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    More Practice
-                  </Button>
-
-                  <Button onClick={handleComplete}>Continue to Skills Test</Button>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <h4 className="font-semibold text-yellow-900 mb-2">Would you like more practice?</h4>
+                  <p className="text-yellow-800 text-sm mb-4">
+                    If you wish to see additional problems, you can press "More Practice" which will allow you to see more knapsack practice questions.
+                  </p>
+                  <div className="flex justify-center space-x-3">
+                    <Button onClick={handleComplete} size="lg" className="bg-blue-600 hover:bg-blue-700">
+                      Continue to Test 1
+                    </Button>
+                    <Button onClick={startExtraPractice} variant="outline" size="lg">
+                      More Practice
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -265,8 +296,8 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
     )
   }
 
-  const question = practiceQuestions[currentQuestion]
-  const progress = ((currentQuestion + 1) / practiceQuestions.length) * 100
+  const question = allQuestions[currentQuestion]
+  const progress = ((currentQuestion + 1) / allQuestions.length) * 100
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -275,7 +306,8 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">
-              Practice Question {currentQuestion + 1} of {practiceQuestions.length}
+              Practice Question {currentQuestion + 1} of {allQuestions.length}
+              {isExtraPractice && currentQuestion >= practiceQuestions.length && " (Extra Practice)"}
             </span>
             <Badge variant="outline">No Time Limit</Badge>
           </div>

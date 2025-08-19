@@ -214,21 +214,34 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     }
   }
 
+  const skipQuestion = () => {
+    const timeSpent = Date.now() - questionStartTime
+    const newAnswer = {
+      questionId: skillsQuestions[currentQuestion].id,
+      selected: [],
+      correct: false,
+      timeSpent: Math.round(timeSpent / 1000),
+    }
+
+    setAnswers((prev) => [...prev, newAnswer])
+    nextQuestion()
+  }
+
   const completePhase = () => {
     setIsComplete(true)
     const correctAnswers = answers.filter((a) => a.correct).length
-    const totalPoints = correctAnswers * 10 + answers.filter((a) => a.selected.length === 0).length * 5
+    const performanceScore = correctAnswers
 
     updateParticipantData({
       training2: {
         completed: true,
         correctAnswers,
         totalQuestions: skillsQuestions.length,
-        totalPoints,
+        performanceScore,
         timeUsed: 15 * 60 - totalTimeLeft,
         answers,
       },
-      totalPoints: totalPoints,
+      totalScore: performanceScore,
     })
   }
 
@@ -251,67 +264,68 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
           <CardHeader>
             <CardTitle className="flex items-center">
               <Zap className="h-6 w-6 mr-2 text-orange-600" />
-              Skills Assessment - Instructions
+              Test 1 - Instructions
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-6">
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-orange-800 mb-4">Skills Assessment Phase</h3>
+          <CardContent className="space-y-8">
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-8">
+              <h3 className="text-2xl font-semibold text-orange-800 mb-6">Test 1</h3>
 
-              <div className="space-y-4 text-orange-700">
-                <p>
-                  In this section, you will complete <strong>10 questions</strong> for a chance to win a prize of{" "}
-                  <strong>$25</strong>. Once you start, you will have exactly <strong>15 minutes total</strong> to
+              <div className="space-y-6 text-orange-700">
+                <p className="text-lg">
+                  In this section, you will complete <strong>10 questions</strong> to assess your skills.
+                  Once you start, you will have exactly <strong>15 minutes total</strong> to
                   complete all questions.
                 </p>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2 flex items-center">
-                      <Clock className="h-4 w-4 mr-2" />
-                      Timing Rules
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-lg">
+                    <h4 className="text-lg font-semibold mb-4 flex items-center">
+                      <Clock className="h-5 w-5 mr-2" />
+                      Rules
                     </h4>
-                    <ul className="text-sm space-y-1">
-                      <li>• 15 minutes total for all 10 questions</li>
-                      <li>• Timer counts down continuously</li>
-                      <li>• No going back once you move forward</li>
-                      <li>• Auto-submit when time runs out</li>
+                    <ul className="text-base space-y-2">
+                      <li>• You have 15 minutes total for all 10 questions.</li>
+                      <li>• Timer counts down continuously.</li>
+                      <li>• You cannot come back to previous questions after seeing later questions, so answer questions you wish before moving on.</li>
+                      <li>• Guessing is penalized! Please only answer questions you wish to answer.</li>
+                      <li>• Only questions confirmed are considered answered, unconfirmed questions are considered unanswered!</li>
+                      <li>• Auto-submit when time runs out.</li>
                     </ul>
                   </div>
 
-                  <div className="bg-white p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2 flex items-center">
-                      <Trophy className="h-4 w-4 mr-2" />
-                      Scoring System
+                  <div className="bg-white p-6 rounded-lg">
+                    <h4 className="text-lg font-semibold mb-4 flex items-center">
+                      <Trophy className="h-5 w-5 mr-2" />
+                      Assessment
                     </h4>
-                    <ul className="text-sm space-y-1">
+                    <ul className="text-base space-y-2">
                       <li>
-                        • <strong>10 points</strong> for each correct answer
+                        • <strong>Correct answers</strong>: Contribute to your assessment
                       </li>
                       <li>
-                        • <strong>5 points</strong> for each unanswered question
+                        • <strong>Incorrect answers</strong>: Do not contribute to your assessment
                       </li>
                       <li>
-                        • <strong>0 points</strong> for incorrect answers
+                        • <strong>Unanswered questions</strong>: Considered neutral
                       </li>
-                      <li>• Points = percentage chance to win prize</li>
                     </ul>
                   </div>
                 </div>
 
-                <div className="bg-red-100 border border-red-300 rounded-lg p-4">
-                  <div className="flex items-center mb-2">
+                <div className="bg-red-100 border border-red-300 rounded-lg p-6">
+                  <div className="flex items-center mb-4">
                     <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
-                    <h4 className="font-semibold text-red-800">Important Reminders</h4>
+                    <h4 className="text-lg font-semibold text-red-800">Important Reminders</h4>
                   </div>
-                  <ul className="text-sm text-red-700 space-y-1">
+                  <ul className="text-base text-red-700 space-y-2">
                     <li>
-                      • <strong>MUST confirm your answers!</strong> Unconfirmed = unanswered
+                      • <strong>MUST confirm answers you wish to submit!</strong> Unconfirmed = unanswered.
                     </li>
-                    <li>• Questions increase in difficulty (easy → medium → hard)</li>
-                    <li>• Plan your time wisely - you're not expected to finish all questions</li>
-                    <li>• Focus on accuracy over speed</li>
+                    <li>• You ARE expected to finish before the timing constraint.</li>
+                    <li>• If you attempted a question but do not wish to answer it, no need to deselect the balls, just leave the question unconfirmed.</li>
+                    <li>• Focus on accuracy over speed.</li>
                   </ul>
                 </div>
               </div>
@@ -320,7 +334,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
             <div className="text-center">
               <Button onClick={startPhase} size="lg" className="bg-orange-600 hover:bg-orange-700">
                 <Clock className="h-5 w-5 mr-2" />
-                Start Skills Assessment
+                Start Test 1
               </Button>
             </div>
           </CardContent>
@@ -333,7 +347,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     const correctAnswers = answers.filter((a) => a.correct).length
     const unansweredQuestions = answers.filter((a) => a.selected.length === 0).length
     const incorrectAnswers = answers.filter((a) => a.selected.length > 0 && !a.correct).length
-    const totalPoints = correctAnswers * 10 + unansweredQuestions * 5
+    const performanceScore = correctAnswers
 
     return (
       <div className="max-w-4xl mx-auto">
@@ -341,7 +355,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
           <CardHeader>
             <CardTitle className="flex items-center">
               <Trophy className="h-6 w-6 mr-2 text-green-600" />
-              Skills Assessment Complete!
+              Test 1 Complete!
             </CardTitle>
           </CardHeader>
 
@@ -367,16 +381,16 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
                   </div>
 
                   <div className="bg-white p-4 rounded-lg shadow-sm border-2 border-blue-500">
-                    <div className="text-3xl font-bold text-blue-600">{totalPoints}</div>
-                    <div className="text-sm text-gray-600">Total Points</div>
+                    <div className="text-3xl font-bold text-blue-600">{performanceScore}</div>
+                    <div className="text-sm text-gray-600">Performance Score</div>
                   </div>
                 </div>
 
                 <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 mb-6">
                   <p className="text-blue-800 font-medium">
-                    You are awarded <strong>{totalPoints} probability points</strong>!
+                    You achieved a performance score of <strong>{performanceScore}</strong>!
                   </p>
-                  <p className="text-blue-700 text-sm mt-1">Each point represents a 1% chance to win the $25 prize.</p>
+                  <p className="text-blue-700 text-sm mt-1">Great job completing the assessment.</p>
                 </div>
 
                 <Button onClick={onNext} size="lg">
@@ -451,7 +465,9 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
           <KnapsackQuestion
             question={question}
             onAnswer={handleAnswer}
+            onSkip={skipQuestion}
             isInteractive={true}
+            isTestMode={true}
             timeLimit={90}
             onTimeUp={() => {
               // Handle individual question timeout if needed

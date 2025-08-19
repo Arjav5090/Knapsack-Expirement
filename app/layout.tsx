@@ -4,8 +4,8 @@ import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Knapsack Expirement',
-  description: 'Expirementation using Knapsack Problem',
+  title: 'Knapsack Study',
+  description: 'Interactive Problem Solving Study',
 }
 
 // Combine both font classNames

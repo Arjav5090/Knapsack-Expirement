@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Package, Coins, Weight, CheckCircle } from "lucide-react"
+import { Package, Coins, Weight, CheckCircle, Zap, Star, Target, ShoppingBag } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface Ball {
@@ -25,8 +25,10 @@ interface Question {
 interface KnapsackQuestionProps {
   question: Question
   onAnswer?: (selectedBalls: number[], isCorrect: boolean) => void
+  onSkip?: () => void
   showSolution?: boolean
   isInteractive?: boolean
+  isTestMode?: boolean
   timeLimit?: number
   onTimeUp?: () => void
   initialSelection?: number[]
@@ -36,8 +38,10 @@ interface KnapsackQuestionProps {
 export default function KnapsackQuestion({
   question,
   onAnswer,
+  onSkip,
   showSolution = false,
   isInteractive = true,
+  isTestMode = false,
   timeLimit,
   onTimeUp,
   initialSelection = [],
@@ -114,11 +118,9 @@ export default function KnapsackQuestion({
   const isOverCapacity = currentTotals.weight > question.capacity
 
   const handleSubmit = () => {
-    if (isOverCapacity) return
-
     setSubmitted(true)
     const isCorrect = question.solution
-      ? JSON.stringify([...selectedBalls].sort()) === JSON.stringify([...question.solution].sort())
+      ? !isOverCapacity && JSON.stringify([...selectedBalls].sort()) === JSON.stringify([...question.solution].sort())
       : false
 
     onAnswer?.(selectedBalls, isCorrect)
@@ -134,20 +136,26 @@ export default function KnapsackQuestion({
     <div className="space-y-6">
       {/* Timer */}
       {timeLimit && (
-        <div className="flex justify-center">
-          <Card className={`${timeLeft <= 15 ? "border-red-500 bg-red-50" : "border-blue-500 bg-blue-50"}`}>
-            <CardContent className="p-3">
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-3 h-3 rounded-full ${timeLeft <= 15 ? "bg-red-500 animate-pulse" : "bg-blue-500"}`}
-                />
-                <span className={`font-mono text-lg font-bold ${timeLeft <= 15 ? "text-red-700" : "text-blue-700"}`}>
-                  {formatTime(timeLeft)}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-center"
+        >
+          <div className={`px-4 py-2 rounded-xl border-2 shadow-lg ${
+            timeLeft <= 15 ? "border-red-500 bg-red-50" : "border-blue-500 bg-blue-50"
+          }`}>
+            <div className="flex items-center space-x-3">
+              <motion.div
+                animate={{ scale: timeLeft <= 15 ? [1, 1.2, 1] : 1 }}
+                transition={{ repeat: timeLeft <= 15 ? Infinity : 0, duration: 1 }}
+                className={`w-3 h-3 rounded-full ${timeLeft <= 15 ? "bg-red-500" : "bg-blue-500"}`}
+              />
+              <span className={`font-mono text-lg font-bold ${timeLeft <= 15 ? "text-red-700" : "text-blue-700"}`}>
+                {formatTime(timeLeft)}
+              </span>
+            </div>
+          </div>
+        </motion.div>
       )}
 
       {/* Warning */}
@@ -157,7 +165,7 @@ export default function KnapsackQuestion({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-center"
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl text-center"
           >
             ⚠️ 15 seconds remaining! Remember to confirm your answer!
           </motion.div>
@@ -165,139 +173,250 @@ export default function KnapsackQuestion({
       </AnimatePresence>
 
       {/* Question Display */}
-      <Card className="border-2 border-gray-200">
-        <CardContent className="p-6">
-          {/* Knapsack */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center space-x-3 bg-gray-100 rounded-lg p-4">
-              <Package className="h-8 w-8 text-gray-600" />
-              <div>
-                <div className="text-sm text-gray-600">Knapsack Capacity</div>
-                <div className="text-2xl font-bold text-gray-900">{question.capacity}</div>
+      <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 border border-gray-200 shadow-lg">
+        {/* Header Section */}
+        <div className="text-center mb-6">
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mb-3 shadow-lg"
+          >
+            <Package className="h-8 w-8 text-white" />
+          </motion.div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Knapsack Problem</h3>
+          <div className="inline-flex items-center space-x-2 bg-white rounded-xl px-4 py-2 shadow-md border">
+            <span className="text-sm font-medium text-gray-600">Capacity:</span>
+            <span className="text-2xl font-bold text-gray-900">{question.capacity}</span>
+          </div>
+        </div>
+
+        {/* Statistics Dashboard */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+              isTestMode || !isOverCapacity 
+                ? "bg-blue-50 border-blue-200 text-blue-800" 
+                : "bg-red-50 border-red-200 text-red-800"
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-lg ${
+                isTestMode || !isOverCapacity ? "bg-blue-100" : "bg-red-100"
+              }`}>
+                <Weight className="h-5 w-5" />
               </div>
-            </div>
-          </div>
-
-          {/* Current Selection Stats */}
-          <div className="flex justify-center space-x-6 mb-6">
-            <div
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                isOverCapacity ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-              }`}
-            >
-              <Weight className="h-5 w-5" />
-              <span className="font-semibold">
-                Weight: {currentTotals.weight}/{question.capacity}
-              </span>
-            </div>
-
-            <div className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-green-100 text-green-700">
-              <Coins className="h-5 w-5" />
-              <span className="font-semibold">Reward: {currentTotals.reward}</span>
-            </div>
-          </div>
-
-          {/* Balls */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {question.balls.map((ball) => {
-              const isSelected = selectedBalls.includes(ball.id)
-              const isSolution = showSolution && question.solution?.includes(ball.id)
-
-              return (
-                <motion.div
-                  key={ball.id}
-                  whileHover={isInteractive && !submitted ? { scale: 1.05 } : {}}
-                  whileTap={isInteractive && !submitted ? { scale: 0.95 } : {}}
-                >
-                  <Card
-                    className={`cursor-pointer transition-all duration-200 ${
-                      isSelected
-                        ? "ring-4 ring-blue-500 shadow-lg"
-                        : isSolution
-                          ? "ring-4 ring-green-500 shadow-lg"
-                          : "hover:shadow-md"
-                    } ${!isInteractive || submitted ? "cursor-default" : ""}`}
-                    onClick={() => toggleBall(ball.id)}
-                  >
-                    <CardContent className="p-4 text-center">
-                      <div
-                        className={`w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center ${ball.color}`}
-                      >
-                        <span className="text-white font-bold text-lg">{ball.id}</span>
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-center space-x-1 text-sm">
-                          <Weight className="h-4 w-4 text-gray-500" />
-                          <span>W: {ball.weight}</span>
-                        </div>
-                        <div className="flex items-center justify-center space-x-1 text-sm">
-                          <Coins className="h-4 w-4 text-yellow-500" />
-                          <span>R: {ball.reward}</span>
-                        </div>
-                      </div>
-
-                      {isSelected && <CheckCircle className="h-5 w-5 text-blue-500 mx-auto mt-2" />}
-
-                      {isSolution && !isSelected && (
-                        <div className="mt-2">
-                          <Badge variant="outline" className="text-green-600 border-green-600">
-                            Solution
-                          </Badge>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )
-            })}
-          </div>
-
-          {/* Submit Button */}
-          {isInteractive && !submitted && (
-            <div className="text-center mt-6">
-              <Button
-                onClick={handleSubmit}
-                disabled={selectedBalls.length === 0 || isOverCapacity}
-                size="lg"
-                className={isOverCapacity ? "bg-red-500 hover:bg-red-600" : ""}
-              >
-                {isOverCapacity ? "Over Capacity!" : "Confirm Answer"}
-              </Button>
-            </div>
-          )}
-
-          {/* Confirmed Status */}
-          {submitted && (
-            <div className="text-center mt-6">
-              <Badge className="bg-green-600 text-white">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Answer Confirmed
-              </Badge>
-            </div>
-          )}
-
-          {/* Solution Display */}
-          {showSolution && question.solution && solutionTotals && (
-            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2 flex items-center">
-                <CheckCircle className="h-5 w-5 mr-2" />
-                Optimal Solution
-              </h4>
-              <div className="flex justify-between items-center">
-                <span className="text-green-700">Balls: {question.solution.join(", ")}</span>
-                <div className="flex space-x-4 text-sm">
-                  <span className="text-green-700">
-                    Weight: {solutionTotals.weight}/{question.capacity}
-                  </span>
-                  <span className="text-green-700 font-semibold">Reward: {solutionTotals.reward}</span>
+              <div>
+                <div className="text-xs font-medium opacity-80">Total Weight</div>
+                <div className="text-2xl font-bold">
+                  {currentTotals.weight} / {question.capacity}
                 </div>
               </div>
-              {question.explanation && <p className="text-green-700 mt-2 text-sm">{question.explanation}</p>}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="p-4 rounded-xl bg-emerald-50 border-2 border-emerald-200 text-emerald-800"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-emerald-100">
+                <Coins className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-xs font-medium opacity-80">Total Reward</div>
+                <div className="text-2xl font-bold">{currentTotals.reward}</div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Selection Instructions */}
+        <div className="text-center mb-6">
+          <p className="text-sm text-gray-600 bg-white/60 rounded-full px-4 py-2 inline-block">
+            Click items to select • Selected: {selectedBalls.length} items
+          </p>
+        </div>
+
+        {/* Items Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+          {question.balls.map((ball, index) => {
+            const isSelected = selectedBalls.includes(ball.id)
+            const isSolution = showSolution && question.solution?.includes(ball.id)
+
+            return (
+              <motion.div
+                key={ball.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={isInteractive && !submitted ? { 
+                  scale: 1.05
+                } : {}}
+                whileTap={isInteractive && !submitted ? { scale: 0.95 } : {}}
+                className="relative"
+              >
+                <div
+                  className={`
+                    relative p-4 rounded-2xl border-2 transition-all duration-300 cursor-pointer
+                    ${isSelected
+                      ? "bg-white border-blue-400 shadow-xl ring-4 ring-blue-200 ring-opacity-50"
+                      : isSolution
+                        ? "bg-white border-green-400 shadow-xl ring-4 ring-green-200 ring-opacity-50"
+                        : "bg-white border-gray-200 shadow-md hover:shadow-lg hover:border-gray-300"
+                    }
+                    ${!isInteractive || submitted ? "cursor-default" : ""}
+                  `}
+                  onClick={() => toggleBall(ball.id)}
+                >
+                  {/* Item Circle */}
+                  <div className="flex justify-center mb-2">
+                    <div
+                      className={`
+                        w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg
+                        ${ball.color}
+                        ${isSelected ? "ring-4 ring-white ring-opacity-50" : ""}
+                      `}
+                    >
+                      {ball.id}
+                    </div>
+                  </div>
+
+                  {/* Item Stats */}
+                  <div className="space-y-3">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-2 mb-1">
+                        <Weight className="h-5 w-5 text-gray-600" />
+                        <span className="text-sm font-medium text-gray-600">Weight</span>
+                      </div>
+                      <div className="text-2xl font-bold text-gray-700">
+                        {ball.weight}
+                      </div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-2 mb-1">
+                        <Coins className="h-5 w-5 text-amber-600" />
+                        <span className="text-sm font-medium text-amber-600">Reward</span>
+                      </div>
+                      <div className="text-2xl font-bold text-amber-600">
+                        {ball.reward}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Selection Indicator */}
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg"
+                    >
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </motion.div>
+                  )}
+
+                  {/* Solution Badge */}
+                  {isSolution && !isSelected && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="absolute -top-2 -right-2"
+                    >
+                      <Badge className="bg-green-500 text-white text-xs">
+                        Solution
+                      </Badge>
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
+
+        {/* Action Buttons */}
+        {isInteractive && !submitted && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-center space-x-4"
+          >
+            <Button
+              onClick={handleSubmit}
+              disabled={selectedBalls.length === 0}
+              size="lg"
+              className={`
+                px-8 py-3 rounded-xl font-semibold shadow-lg transition-all duration-200
+                ${!isTestMode && isOverCapacity 
+                  ? "bg-red-500 hover:bg-red-600" 
+                  : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                }
+                disabled:opacity-50 disabled:cursor-not-allowed
+              `}
+            >
+              {!isTestMode && isOverCapacity ? "Confirm Answer (Over Capacity)" : "Confirm Answer"}
+            </Button>
+            
+            {onSkip && (
+              <Button
+                onClick={onSkip}
+                variant="outline"
+                size="lg"
+                className="px-8 py-3 rounded-xl font-semibold border-2 hover:bg-gray-50 transition-all duration-200"
+              >
+                Skip Question
+              </Button>
+            )}
+          </motion.div>
+        )}
+
+        {/* Confirmed Status */}
+        {submitted && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center"
+          >
+            <div className="inline-flex items-center space-x-2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg">
+              <CheckCircle className="h-5 w-5" />
+              <span className="font-semibold">Answer Confirmed</span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Solution Display */}
+        {showSolution && question.solution && solutionTotals && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl"
+          >
+            <h4 className="font-bold text-green-800 mb-4 flex items-center text-lg">
+              <CheckCircle className="h-6 w-6 mr-2" />
+              Optimal Solution
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-white rounded-xl p-3 text-center">
+                <div className="text-sm text-green-600 font-medium">Selected Items</div>
+                <div className="text-lg font-bold text-green-800">{question.solution.join(", ")}</div>
+              </div>
+              <div className="bg-white rounded-xl p-3 text-center">
+                <div className="text-sm text-green-600 font-medium">Total Weight</div>
+                <div className="text-lg font-bold text-green-800">{solutionTotals.weight}/{question.capacity}</div>
+              </div>
+              <div className="bg-white rounded-xl p-3 text-center">
+                <div className="text-sm text-green-600 font-medium">Total Reward</div>
+                <div className="text-lg font-bold text-green-800">{solutionTotals.reward}</div>
+              </div>
+            </div>
+            {question.explanation && (
+              <p className="text-green-700 text-center bg-white rounded-xl p-4 italic">
+                {question.explanation}
+              </p>
+            )}
+          </motion.div>
+        )}
+      </div>
     </div>
   )
 }
