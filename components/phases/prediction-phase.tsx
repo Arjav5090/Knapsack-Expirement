@@ -114,25 +114,52 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
     completeTest()
   }
 
-  const completeTest = () => {
+  const completeTest = async () => {
     setIsComplete(true)
+  
     const correctAnswers = Object.values(answers).filter((a) => a.confirmed && a.correct).length
     const confirmedAnswers = Object.values(answers).filter((a) => a.confirmed).length
     const unansweredQuestions = questions.length - confirmedAnswers
     const performanceScore = correctAnswers
-
-    updateParticipantData({
-      prediction: {
+  
+    const payload = {
+      participantId: localStorage.getItem("participantId"),
+      phase: "final",
+      data: {
         completed: true,
         correctAnswers,
         totalQuestions: questions.length,
         performanceScore,
         timeUsed: 20 * 60 - timeLeft,
-        answers,
+        answers: Object.entries(answers).map(([questionId, value]) => ({
+          questionId: Number(questionId),
+          selected: value.selected,
+          confirmed: value.confirmed,
+          correct: value.correct,
+        })),
       },
-    })
-    onNext()
+    }
+  
+    try {
+      const res = await fetch("http://localhost:8787/api/v1/ingest-phase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+  
+      if (!res.ok) throw new Error("Failed to submit final test")
+  
+      console.log("[Final Test] Submission successful ✅")
+      updateParticipantData({ final: payload.data })
+      onNext()
+    } catch (err) {
+      console.error("[Final Test] Submission failed ❌", err)
+      alert("There was an error submitting your final test responses.")
+    }
   }
+  
 
   const toggleStar = (questionIndex: number) => {
     setStarredQuestions((prev) => {

@@ -68,17 +68,38 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
     }
   }
 
-  const completePhase = () => {
-    updateParticipantData({
-      strategy: {
+  const completePhase = async () => {
+    const payload = {
+      phase: "strategy",
+      participantId: localStorage.getItem("participantId"),
+      data: {
         completed: true,
         answers,
         questionsAnswered: Object.keys(answers).length,
         totalQuestions: strategyQuestions.length
       }
-    })
-    onNext()
+    }
+  
+    try {
+      const res = await fetch("http://localhost:8787/api/v1/ingest-phase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      })
+  
+      if (!res.ok) throw new Error("Failed to submit strategy phase")
+  
+      console.log("[Strategy Phase] Submission successful ✅")
+      updateParticipantData({ strategy: payload.data })
+      onNext()
+    } catch (err) {
+      console.error("[Strategy Phase] Submission failed ❌", err)
+      alert("There was an error submitting your strategy responses.")
+    }
   }
+  
 
   const wordCount = (text: string) => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -157,9 +157,10 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
   >([])
   const [showInstructions, setShowInstructions] = useState(true)
   const [startTime, setStartTime] = useState<number>(0)
-  const [totalTimeLeft, setTotalTimeLeft] = useState(15 * 60) // 15 minutes
+  const [totalTimeLeft, setTotalTimeLeft] = useState(15 * 60)
   const [questionStartTime, setQuestionStartTime] = useState<number>(0)
   const [isComplete, setIsComplete] = useState(false)
+  const hasCompleted = useRef(false)
 
   // Total timer
   useEffect(() => {
@@ -167,18 +168,29 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
       const timer = setInterval(() => {
         setTotalTimeLeft((prev) => {
           if (prev <= 1) {
+            clearInterval(timer)
             handleTimeUp()
             return 0
           }
           return prev - 1
         })
       }, 1000)
-
       return () => clearInterval(timer)
     }
   }, [showInstructions, totalTimeLeft, isComplete])
 
+  const nextQuestion = () => {
+    if (currentQuestion < skillsQuestions.length - 1) {
+      setCurrentQuestion((prev) => prev + 1)
+      setQuestionStartTime(Date.now())
+    } else {
+      completePhase()
+    }
+  }
+
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
+    if (hasCompleted.current) return
+
     const timeSpent = Date.now() - questionStartTime
     const newAnswer = {
       questionId: skillsQuestions[currentQuestion].id,
@@ -191,30 +203,9 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     nextQuestion()
   }
 
-  const handleTimeUp = () => {
-    if (currentQuestion < skillsQuestions.length) {
-      // Mark remaining questions as unanswered
-      const remainingQuestions = skillsQuestions.slice(currentQuestion).map((q) => ({
-        questionId: q.id,
-        selected: [],
-        correct: false,
-        timeSpent: 0,
-      }))
-      setAnswers((prev) => [...prev, ...remainingQuestions])
-    }
-    completePhase()
-  }
-
-  const nextQuestion = () => {
-    if (currentQuestion < skillsQuestions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-      setQuestionStartTime(Date.now())
-    } else {
-      completePhase()
-    }
-  }
-
   const skipQuestion = () => {
+    if (hasCompleted.current) return
+
     const timeSpent = Date.now() - questionStartTime
     const newAnswer = {
       questionId: skillsQuestions[currentQuestion].id,
@@ -227,22 +218,54 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     nextQuestion()
   }
 
-  const completePhase = () => {
+  const handleTimeUp = () => {
+    if (hasCompleted.current) return
+
+    const remaining = skillsQuestions.slice(currentQuestion).map((q) => ({
+      questionId: q.id,
+      selected: [],
+      correct: false,
+      timeSpent: 0,
+    }))
+    setAnswers((prev) => [...prev, ...remaining])
+    completePhase()
+  }
+
+  const completePhase = async () => {
+    if (hasCompleted.current) return
+    hasCompleted.current = true
     setIsComplete(true)
+
     const correctAnswers = answers.filter((a) => a.correct).length
     const performanceScore = correctAnswers
 
-    updateParticipantData({
-      training2: {
+    const payload = {
+      phase: "skill",
+      participantId: localStorage.getItem("participantId"),
+      data: {
         completed: true,
         correctAnswers,
         totalQuestions: skillsQuestions.length,
-        performanceScore,
+        accuracy: correctAnswers / skillsQuestions.length,
         timeUsed: 15 * 60 - totalTimeLeft,
         answers,
       },
-      totalScore: performanceScore,
-    })
+    }
+
+    try {
+      const res = await fetch("http://localhost:8787/api/v1/ingest-phase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) throw new Error("Failed to submit skill test data")
+      console.log("[Skill Test] Submission successful ✅")
+      updateParticipantData({ training2: payload.data, totalScore: performanceScore })
+    } catch (err) {
+      console.error("[Skill Test] Submission failed ❌", err)
+      alert("There was an error submitting your skill test results.")
+    }
   }
 
   const startPhase = () => {
@@ -257,6 +280,13 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
+  const question = skillsQuestions[currentQuestion]
+  const progress = ((currentQuestion + 1) / skillsQuestions.length) * 100
+  const difficultyColor = {
+    easy: "bg-green-500",
+    medium: "bg-yellow-500",
+    hard: "bg-red-500",
+  }[question.difficulty]
   if (showInstructions) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -404,17 +434,10 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     )
   }
 
-  const question = skillsQuestions[currentQuestion]
-  const progress = ((currentQuestion + 1) / skillsQuestions.length) * 100
-  const difficultyColor = {
-    easy: "bg-green-500",
-    medium: "bg-yellow-500",
-    hard: "bg-red-500",
-  }[question.difficulty]
+ 
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Timer and Progress */}
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
@@ -424,37 +447,21 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
               </span>
               <Badge className={`text-white ${difficultyColor}`}>{question.difficulty.toUpperCase()}</Badge>
             </div>
-
-            <div
-              className={`flex items-center space-x-2 px-3 py-1 rounded-lg ${
-                totalTimeLeft <= 300 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-              }`}
-            >
+            <div className={`flex items-center space-x-2 px-3 py-1 rounded-lg ${totalTimeLeft <= 300 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
               <Clock className="h-4 w-4" />
               <span className="font-mono font-bold">{formatTime(totalTimeLeft)}</span>
             </div>
           </div>
-
           <Progress value={progress} className="h-2" />
-
-          {totalTimeLeft <= 300 && (
-            <div className="mt-2 text-center">
-              <Badge variant="destructive" className="animate-pulse">
-                Less than 5 minutes remaining!
-              </Badge>
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* Reminder */}
       <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
         <p className="text-red-700 font-medium text-sm">
-          🚨 Remember to confirm your answers if you intend to answer! No confirmation means question left blank!
+          🚨 Confirm answers or they will be considered unanswered!
         </p>
       </div>
 
-      {/* Question */}
       <AnimatePresence mode="wait">
         <motion.div
           key={`question-${currentQuestion}`}
@@ -470,7 +477,6 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
             isTestMode={true}
             timeLimit={90}
             onTimeUp={() => {
-              // Handle individual question timeout if needed
               const timeSpent = Date.now() - questionStartTime
               const newAnswer = {
                 questionId: question.id,

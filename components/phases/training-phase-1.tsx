@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Target, CheckCircle, XCircle } from "lucide-react"
+import { Target, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
 
@@ -16,10 +16,7 @@ interface TrainingPhase1Props {
 }
 
 const practiceQuestions = [
-  {
-    id: 1,
-    capacity: 8,
-    balls: [
+  { id: 1, capacity: 8, balls: [
       { id: 1, weight: 4, reward: 12, color: "bg-red-500" },
       { id: 2, weight: 3, reward: 10, color: "bg-blue-500" },
       { id: 3, weight: 5, reward: 15, color: "bg-green-500" },
@@ -27,10 +24,7 @@ const practiceQuestions = [
     solution: [2, 3],
     explanation: "Select balls 2 and 3 for total weight 8 and reward 25.",
   },
-  {
-    id: 2,
-    capacity: 12,
-    balls: [
+  { id: 2, capacity: 12, balls: [
       { id: 1, weight: 6, reward: 18, color: "bg-purple-500" },
       { id: 2, weight: 4, reward: 12, color: "bg-yellow-500" },
       { id: 3, weight: 3, reward: 8, color: "bg-pink-500" },
@@ -39,10 +33,7 @@ const practiceQuestions = [
     solution: [1, 2],
     explanation: "Select balls 1 and 2 for total weight 10 and reward 30.",
   },
-  {
-    id: 3,
-    capacity: 15,
-    balls: [
+  { id: 3, capacity: 15, balls: [
       { id: 1, weight: 8, reward: 24, color: "bg-red-500" },
       { id: 2, weight: 6, reward: 18, color: "bg-blue-500" },
       { id: 3, weight: 4, reward: 12, color: "bg-green-500" },
@@ -52,10 +43,7 @@ const practiceQuestions = [
     solution: [1, 2],
     explanation: "Select balls 1 and 2 for total weight 14 and reward 42.",
   },
-  {
-    id: 4,
-    capacity: 10,
-    balls: [
+  { id: 4, capacity: 10, balls: [
       { id: 1, weight: 5, reward: 20, color: "bg-orange-500" },
       { id: 2, weight: 4, reward: 15, color: "bg-teal-500" },
       { id: 3, weight: 6, reward: 22, color: "bg-rose-500" },
@@ -64,10 +52,7 @@ const practiceQuestions = [
     solution: [1, 2],
     explanation: "Select balls 1 and 2 for total weight 9 and reward 35.",
   },
-  {
-    id: 5,
-    capacity: 20,
-    balls: [
+  { id: 5, capacity: 20, balls: [
       { id: 1, weight: 10, reward: 30, color: "bg-red-500" },
       { id: 2, weight: 8, reward: 24, color: "bg-blue-500" },
       { id: 3, weight: 6, reward: 18, color: "bg-green-500" },
@@ -77,10 +62,7 @@ const practiceQuestions = [
     solution: [2, 5],
     explanation: "Select balls 2 and 5 for total weight 20 and reward 60.",
   },
-  {
-    id: 6,
-    capacity: 25,
-    balls: [
+  { id: 6, capacity: 25, balls: [
       { id: 1, weight: 15, reward: 45, color: "bg-indigo-500" },
       { id: 2, weight: 10, reward: 30, color: "bg-pink-500" },
       { id: 3, weight: 8, reward: 24, color: "bg-orange-500" },
@@ -117,7 +99,8 @@ const extraPracticeQuestions = [
       { id: 5, weight: 4, reward: 12, color: "bg-slate-500" },
     ],
     solution: [1, 3, 5],
-    explanation: "Select balls 1, 3, and 5 for total weight 27 and reward 81. Wait, that exceeds capacity! The correct solution is balls 1 and 3 for weight 23 and reward 69.",
+    explanation:
+      "Select balls 1, 3, and 5 for total weight 27 and reward 81. Wait, that exceeds capacity! The correct solution is balls 1 and 3 for weight 23 and reward 69.",
   },
 ]
 
@@ -131,13 +114,29 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
   const [isExtraPractice, setIsExtraPractice] = useState(false)
   const [allQuestions, setAllQuestions] = useState(practiceQuestions)
 
+  // 🔑 Load participantId from localStorage once
+  const [pid, setPid] = useState<string | null>(null)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("participantId")
+      setPid(stored)
+      if (!stored) {
+        console.warn("[Practice] No participantId in localStorage. Did registration run on page load?")
+      }
+    } catch (e) {
+      console.error("[Practice] Failed to read participantId from localStorage", e)
+    }
+  }, [])
+
+  // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
+  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8787", [])
+
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
     const newAnswer = {
       questionId: allQuestions[currentQuestion].id,
       selected: selectedBalls,
       correct: isCorrect,
     }
-
     setAnswers((prev) => [...prev, newAnswer])
     setLastAnswer({ selected: selectedBalls, correct: isCorrect })
     setShowFeedback(true)
@@ -150,7 +149,7 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
     if (currentQuestion < allQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
     } else {
-      // Show completion screen
+      // End of the current set => show completion screen
       setWantMorePractice(false)
     }
   }
@@ -160,25 +159,67 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
     setIsExtraPractice(true)
     setAllQuestions([...practiceQuestions, ...extraPracticeQuestions])
     setCurrentQuestion(practiceQuestions.length) // Start from first extra question
-    setWantMorePractice(null) // Reset to show questions again
+    setWantMorePractice(null) // Back to questions
   }
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    if (!pid) {
+      alert("Participant not registered yet. Please refresh the page so we can register your session.")
+      console.error("[Practice] handleComplete aborted: no participantId")
+      return
+    }
+
     const correctAnswers = answers.filter((a) => a.correct).length
-    updateParticipantData({
-      training1: {
+    const payload = {
+      phase: "practice",
+      participantId: pid,
+      data: {
         completed: true,
         correctAnswers,
         totalQuestions: answers.length,
-        accuracy: correctAnswers / answers.length,
+        accuracy: answers.length ? correctAnswers / answers.length : 0,
+        answers,
       },
-    })
-    onNext()
+    }
+
+    console.log("[Practice] Submitting payload →", payload)
+
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/ingest-phase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      const text = await res.text()
+      let json: any = null
+      try { json = JSON.parse(text) } catch { /* server might not return JSON on errors */ }
+
+      console.log("[Practice] ingest-phase status:", res.status, "body:", text)
+
+      if (!res.ok) {
+        throw new Error(json?.error || `Failed to submit practice data (status ${res.status})`)
+      }
+
+      updateParticipantData({ training1: payload.data })
+      onNext()
+    } catch (err) {
+      console.error("[Practice] ingest-phase error:", err)
+      alert("There was an error submitting your practice data. See console for details.")
+    }
   }
+
+  // UI
 
   if (showInstructions) {
     return (
       <div className="max-w-4xl mx-auto">
+        {!pid && (
+          <div className="mb-4 flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 rounded p-3">
+            <AlertTriangle className="h-4 w-4" />
+            <span>No participant ID yet. Make sure the page registered a participant on load.</span>
+          </div>
+        )}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -231,7 +272,7 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
 
   if (wantMorePractice !== null) {
     const correctAnswers = answers.filter((a) => a.correct).length
-    const accuracy = (correctAnswers / answers.length) * 100
+    const accuracy = (answers.length ? (correctAnswers / answers.length) : 0) * 100
 
     return (
       <div className="max-w-4xl mx-auto">
@@ -309,7 +350,10 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
               Practice Question {currentQuestion + 1} of {allQuestions.length}
               {isExtraPractice && currentQuestion >= practiceQuestions.length && " (Extra Practice)"}
             </span>
-            <Badge variant="outline">No Time Limit</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">No Time Limit</Badge>
+              {pid && <Badge variant="outline">PID: {pid.slice(0, 8)}…</Badge>}
+            </div>
           </div>
           <Progress value={progress} className="h-2" />
         </CardContent>
@@ -359,7 +403,7 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
 
             <div className="text-center">
               <Button onClick={nextQuestion} size="lg">
-                {currentQuestion === practiceQuestions.length - 1 ? "Complete Practice" : "Next Question"}
+                {currentQuestion === allQuestions.length - 1 ? "Complete Practice" : "Next Question"}
               </Button>
             </div>
           </motion.div>

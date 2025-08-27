@@ -113,27 +113,56 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     completeTest()
   }
 
-  const completeTest = () => {
+  const completeTest = async () => {
     setIsComplete(true)
+  
     const correctAnswers = Object.values(answers).filter((a) => a.confirmed && a.correct).length
     const confirmedAnswers = Object.values(answers).filter((a) => a.confirmed).length
     const unansweredQuestions = questions.length - confirmedAnswers
     const performanceScore = correctAnswers
-
-    updateParticipantData({
-      benchmark: {
+  
+    const payload = {
+      phase: "benchmark",
+      participantId: localStorage.getItem("participantId"),
+      data: {
         completed: true,
         correctAnswers,
         totalQuestions: questions.length,
-        performanceScore,
+        accuracy: correctAnswers / questions.length,
         timeUsed: 20 * 60 - timeLeft,
-        answers,
-        unansweredQuestions,
-        confirmedAnswers,
-      },
-    })
-    onNext()
+        answers: Object.entries(answers).map(([questionId, a]) => ({
+          questionId: Number(questionId),
+          selected: a.selected,
+          correct: a.correct,
+          confirmed: a.confirmed
+        }))
+      }
+    }
+  
+    try {
+      const res = await fetch("http://localhost:8787/api/v1/ingest-phase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+  
+      if (!res.ok) throw new Error("Failed to submit benchmark test data")
+  
+      console.log("[Benchmark Test] Submission successful ✅")
+      updateParticipantData({
+        benchmark: payload.data,
+        totalScore: performanceScore,
+      })
+  
+      onNext()
+    } catch (err) {
+      console.error("[Benchmark Test] Submission failed ❌", err)
+      alert("There was an error submitting your benchmark test results.")
+    }
   }
+  
 
   const toggleStar = (questionIndex: number) => {
     setStarredQuestions((prev) => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Gift, Trophy, Clock, Target, Brain } from "lucide-react"
@@ -16,6 +16,20 @@ import StrategyPhase from "@/components/phases/strategy-phase"
 import PredictionPhase from "@/components/phases/prediction-phase"
 import ResultsPhase from "@/components/phases/results-phase"
 
+async function registerParticipant(): Promise<string> {
+  const res = await fetch("http://localhost:8787/api/v1/register", {
+    method: "POST"
+  })
+
+  if (!res.ok) {
+    throw new Error("Failed to register participant")
+  }
+
+  const data = await res.json()
+  localStorage.setItem("participantId", data.participantId)
+  return data.participantId
+}
+
 const phases = [
   { id: "intro", name: "Welcome", icon: Gift, color: "bg-blue-500" },
   { id: "tutorial", name: "Tutorial", icon: Brain, color: "bg-green-500" },
@@ -29,12 +43,24 @@ const phases = [
 
 export default function KnapsackExperiment() {
   const [currentPhase, setCurrentPhase] = useState("intro")
+  const [participantId, setParticipantId] = useState<string | null>(null)
   const [participantData, setParticipantData] = useState({
     totalScore: 0,
     completedPhases: [],
     performance: {},
     benchmark: null,
   })
+
+  useEffect(() => {
+    // Always register a fresh participant (no localStorage)
+    registerParticipant()
+      .then((id) => {
+        setParticipantId(id)
+        localStorage.setItem("participantId", id) // optional: remove this if you don't want reuse at all
+      })
+      .catch(console.error)
+  }, [])
+  
 
   const currentPhaseIndex = phases.findIndex((p) => p.id === currentPhase)
   const progress = ((currentPhaseIndex + 1) / phases.length) * 100
@@ -98,9 +124,11 @@ export default function KnapsackExperiment() {
                   <p className="text-sm text-gray-600">Interactive Problem Solving</p>
                 </div>
               </div>
-              <Badge variant="outline" className="text-sm bg-blue-50 border-blue-200 text-blue-700">
-                Study ID: KS-2025-001
-              </Badge>
+              {participantId && (
+                <Badge variant="outline" className="text-sm bg-blue-50 border-blue-200 text-blue-700">
+                  Participant ID: {participantId}
+                </Badge>
+              )}
             </div>
 
             <div className="flex items-center space-x-6">
