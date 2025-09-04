@@ -74,8 +74,38 @@ This implementation allows us to:
 ---
 
 
+## 🎲 Dynamic Question Generation
+
+This app now includes a sophisticated **knapsack question generator** that creates problems with controlled difficulty based on academic specifications:
+
+### ✨ Features
+- **Dominance-based difficulty control** - Primary factor for problem complexity
+- **Algorithmic complexity analysis** - Tracks density, slack ratio, optimality gap
+- **Progressive difficulty patterns** - Easy → Medium → Hard with controlled heterogeneity
+- **Unique optimal solutions** - Ensures all-or-nothing scoring validity
+- **Phase-specific generation** - Tailored question sets for training, benchmark, and prediction
+
+### 📁 Generator Files
+- `lib/knapsack-generator.ts` - Core generation algorithms
+- `lib/question-utils.ts` - Phase-specific utilities
+- `lib/generator-demo.ts` - Testing and demonstration
+- `lib/GENERATOR_README.md` - Comprehensive documentation
+
+### 🚀 Usage
+```typescript
+import { generateTrainingQuestions } from '@/lib/question-utils'
+
+// Generate 10 training questions with progressive difficulty
+const questions = generateTrainingQuestions(10)
+```
+
+See `lib/GENERATOR_README.md` for complete documentation and integration examples.
+
+---
+
 ## 🧩 TODO / Future Enhancements
 
+- [x] **Dynamic question generation** with academic difficulty control
 - [ ] Integrate LLM backend for strategy skill prediction
 - [ ] Adaptive question routing (e.g., based on task skill)
 - [ ] Admin dashboard for reviewing participant meta-data
