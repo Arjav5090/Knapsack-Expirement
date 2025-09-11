@@ -17,7 +17,11 @@ import PredictionPhase from "@/components/phases/prediction-phase"
 import ResultsPhase from "@/components/phases/results-phase"
 
 async function registerParticipant(): Promise<string> {
-  const res = await fetch("http://localhost:8787/api/v1/register", {
+  const API_BASE = process.env.NODE_ENV === 'production' 
+    ? "https://your-render-backend-url.onrender.com" // Replace with your Render URL
+    : "http://localhost:8787"
+    
+  const res = await fetch(`${API_BASE}/api/v1/register`, {
     method: "POST"
   })
 
@@ -26,7 +30,35 @@ async function registerParticipant(): Promise<string> {
   }
 
   const data = await res.json()
-  localStorage.setItem("participantId", data.participantId)
+  return data.participantId
+}
+
+async function registerParticipantWithProlific(
+  prolificPid: string, 
+  studyId: string, 
+  sessionId: string
+): Promise<string> {
+  const API_BASE = process.env.NODE_ENV === 'production' 
+    ? "https://your-render-backend-url.onrender.com" // Replace with your Render URL
+    : "http://localhost:8787"
+    
+  const res = await fetch(`${API_BASE}/api/v1/register-prolific`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      prolificPid,
+      studyId,
+      sessionId
+    })
+  })
+
+  if (!res.ok) {
+    throw new Error("Failed to register Prolific participant")
+  }
+
+  const data = await res.json()
   return data.participantId
 }
 
@@ -50,15 +82,54 @@ export default function KnapsackExperiment() {
     performance: {},
     benchmark: null,
   })
+  const [prolificParams, setProlificParams] = useState<{
+    prolificPid: string | null;
+    studyId: string | null;
+    sessionId: string | null;
+  }>({
+    prolificPid: null,
+    studyId: null,
+    sessionId: null,
+  })
+  const [accessAllowed, setAccessAllowed] = useState(false)
 
   useEffect(() => {
-    // Always register a fresh participant (no localStorage)
-    registerParticipant()
-      .then((id) => {
-        setParticipantId(id)
-        localStorage.setItem("participantId", id) // optional: remove this if you don't want reuse at all
-      })
-      .catch(console.error)
+    // Check for Prolific parameters and restrict access
+    const urlParams = new URLSearchParams(window.location.search)
+    const prolificPid = urlParams.get('PROLIFIC_PID')
+    const studyId = urlParams.get('STUDY_ID') 
+    const sessionId = urlParams.get('SESSION_ID')
+
+    // Set Prolific parameters
+    setProlificParams({
+      prolificPid,
+      studyId, 
+      sessionId,
+    })
+
+    // Check if all required Prolific parameters are present
+    if (prolificPid && studyId && sessionId) {
+      setAccessAllowed(true)
+      // Register participant with Prolific ID
+      registerParticipantWithProlific(prolificPid, studyId, sessionId)
+        .then((id) => {
+          setParticipantId(id)
+        })
+        .catch(console.error)
+    } else {
+      // For development, allow access without Prolific params if on localhost
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        setAccessAllowed(true)
+        // Fallback registration for development
+        registerParticipant()
+          .then((id) => {
+            setParticipantId(id)
+          })
+          .catch(console.error)
+      } else {
+        setAccessAllowed(false)
+      }
+    }
   }, [])
   
 
@@ -69,6 +140,17 @@ export default function KnapsackExperiment() {
     const nextIndex = currentPhaseIndex + 1
     if (nextIndex < phases.length) {
       setCurrentPhase(phases[nextIndex].id)
+    } else {
+      // Experiment completed - redirect to Prolific
+      completeProlificStudy()
+    }
+  }
+
+  const completeProlificStudy = () => {
+    if (prolificParams.prolificPid) {
+      // Redirect to Prolific completion page
+      const completionUrl = `https://app.prolific.co/submissions/complete?cc=C1234567` // Replace with your completion code
+      window.location.href = completionUrl
     }
   }
 
@@ -106,6 +188,30 @@ export default function KnapsackExperiment() {
       default:
         return <IntroPhase {...phaseProps} />
     }
+  }
+
+  // Access restriction check
+  if (!accessAllowed) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
+        <div className="max-w-2xl mx-auto p-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Access Restricted</h1>
+            <p className="text-lg text-gray-600 mb-6">
+              This study can only be accessed through Prolific. Please use the link provided in your Prolific study invitation.
+            </p>
+            <p className="text-sm text-gray-500">
+              If you believe this is an error, please contact the researcher.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
