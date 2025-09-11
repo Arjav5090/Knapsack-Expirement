@@ -252,12 +252,12 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
       },
     }
 
-    try {
-      const res = await fetch("http://localhost:8787/api/v1/ingest-phase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
+     try {
+       const res = await fetch("https://knapsack-expirement.onrender.com/api/v1/ingest-phase", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify(payload),
+       })
 
       if (!res.ok) throw new Error("Failed to submit test data")
       console.log("[Test 1] Submission successful ✅")

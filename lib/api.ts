@@ -1,6 +1,6 @@
 import type { Question } from './knapsack-generator';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8787';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://knapsack-expirement.onrender.com';
 
 export async function sendSession(session: {
     participantId: string;
