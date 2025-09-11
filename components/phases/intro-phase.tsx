@@ -18,7 +18,7 @@ export default function IntroPhase({ onNext }: IntroPhaseProps) {
   if (!showSecondDisplay) {
     // Display 1 from MVP
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -56,7 +56,7 @@ export default function IntroPhase({ onNext }: IntroPhaseProps) {
 
   // Display 2 from MVP
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

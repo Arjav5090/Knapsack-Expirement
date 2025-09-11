@@ -119,9 +119,24 @@ export default function KnapsackQuestion({
 
   const handleSubmit = () => {
     setSubmitted(true)
-    const isCorrect = question.solution
-      ? !isOverCapacity && JSON.stringify([...selectedBalls].sort()) === JSON.stringify([...question.solution].sort())
-      : false
+    
+    let isCorrect = false
+    if (question.solution && !isOverCapacity) {
+      // Calculate optimal reward from the known solution
+      const optimalReward = question.solution.reduce((sum, ballId) => {
+        const ball = question.balls.find(b => b.id === ballId)
+        return sum + (ball?.reward || 0)
+      }, 0)
+      
+      // Calculate reward from selected balls
+      const selectedReward = selectedBalls.reduce((sum, ballId) => {
+        const ball = question.balls.find(b => b.id === ballId)
+        return sum + (ball?.reward || 0)
+      }, 0)
+      
+      // Accept any selection that achieves optimal reward and stays within capacity
+      isCorrect = selectedReward === optimalReward
+    }
 
     onAnswer?.(selectedBalls, isCorrect)
   }

@@ -184,7 +184,7 @@ export default function MetaAnalysisPhase({ onNext, updateParticipantData }: Met
 
   if (showInstructions) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -275,7 +275,7 @@ export default function MetaAnalysisPhase({ onNext, updateParticipantData }: Met
       correctClassifications * 2 + (classificationQuestions.length - Object.keys(classifications).length) * 1
 
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -334,7 +334,7 @@ export default function MetaAnalysisPhase({ onNext, updateParticipantData }: Met
   const progress = ((currentQuestion + 1) / classificationQuestions.length) * 100
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Progress */}
       <Card>
         <CardContent className="p-4">

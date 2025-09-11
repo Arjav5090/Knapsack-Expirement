@@ -304,37 +304,54 @@ export default function TutorialPhase({ onNext }: TutorialPhaseProps) {
 
   const steps = [
     {
-      title: "How to do the Knapsack Problem",
+      title: "Welcome to the Knapsack Experiment",
       content: (
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Column - Static Instructions */}
-          <div className="space-y-6">
-            {/* General introduction */}
-            <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-xl border-2 border-blue-200">
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <Package className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">The Knapsack Problem</h4>
-                    <p className="text-gray-700">
-                      You will be answering a series of questions, each presenting what's called a "knapsack problem." 
-                      These are classic optimization puzzles where you need to make strategic choices to maximize your score.
-                    </p>
-                  </div>
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Introduction Section */}
+          <div className="text-center space-y-6">
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 p-8 rounded-xl border-2 border-blue-200">
+              <div className="space-y-6">
+                <div className="flex items-center justify-center space-x-3">
+                  <Package className="h-8 w-8 text-blue-600" />
+                  <h2 className="text-3xl font-bold text-gray-900">The Knapsack Problem</h2>
                 </div>
+                
+                <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+                  You will be answering a series of questions, each presenting what's called a "knapsack problem." 
+                  These are classic optimization puzzles where you need to make strategic choices to maximize your score.
+                </p>
+              </div>
+            </div>
 
-                <div className="flex items-start space-x-3">
-                  <DollarSign className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Monetary Rewards</h4>
-                    <p className="text-gray-700">
-                      <strong>The more questions you answer correctly, the higher monetary reward you will receive.</strong> 
-                      Your performance directly impacts your compensation, so it pays to think carefully about each decision!
-                    </p>
-                  </div>
+            <div className="bg-gradient-to-r from-green-50 to-yellow-50 p-8 rounded-xl border-2 border-green-200">
+              <div className="space-y-6">
+                <div className="flex items-center justify-center space-x-3">
+                  <DollarSign className="h-8 w-8 text-green-600" />
+                  <h2 className="text-3xl font-bold text-gray-900">Monetary Rewards</h2>
+                </div>
+                
+                <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+                  <strong>The more questions you answer correctly, the higher monetary reward you will receive.</strong> 
+                  Your performance directly impacts your compensation, so it pays to think carefully about each decision!
+                </p>
+                
+                <div className="bg-white p-4 rounded-lg shadow-sm max-w-lg mx-auto">
+                  <p className="text-lg text-gray-600">
+                    📚 <strong>Don't worry!</strong> We will have opportunities to practice before results count.
+                  </p>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "How to do the Knapsack Problem",
+      content: (
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Column - Instructions */}
+          <div className="space-y-6">
 
             {/* How the problem works */}
             <div>
@@ -384,33 +401,6 @@ export default function TutorialPhase({ onNext }: TutorialPhaseProps) {
               </div>
             </div>
 
-            {/* Your Goal */}
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl border-2 border-yellow-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Maximize Your Reward Points!</h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Select balls to collect the most reward points possible without exceeding the knapsack's capacity.
-              </p>
-
-              <div className="grid grid-cols-1 gap-3">
-                <div className="bg-white p-3 rounded-lg shadow-sm">
-                  <h4 className="font-semibold text-green-700 mb-2 text-sm">✓ Rules</h4>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• Click balls to select/deselect them</li>
-                    <li>• Each ball can only be used once</li>
-                    <li>• Total weight must not exceed capacity</li>
-                  </ul>
-                </div>
-
-                <div className="bg-white p-3 rounded-lg shadow-sm">
-                  <h4 className="font-semibold text-blue-700 mb-2 text-sm">🎯 Scoring</h4>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• All-or-nothing scoring</li>
-                    <li>• Must find the optimal solution</li>
-                    <li>• Partial credit not awarded</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Right Column - Dynamic Interactive Example */}
@@ -420,6 +410,39 @@ export default function TutorialPhase({ onNext }: TutorialPhaseProps) {
               Here's what a question will look like. Click on the balls to select them and see what happens:
             </p>
             <DynamicExample />
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Your Goals and Scoring",
+      content: (
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-8 rounded-xl border-2 border-yellow-200">
+            <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">Maximize Your Reward Points!</h3>
+            <p className="text-xl text-gray-700 mb-8 text-center max-w-3xl mx-auto">
+              Select balls to collect the most reward points possible without exceeding the knapsack's capacity.
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h4 className="font-semibold text-green-700 mb-4 text-xl">✓ For Every Question</h4>
+                <ul className="text-lg text-gray-600 space-y-3">
+                  <li>• Click once to select a ball, click on a selected ball again to deselect</li>
+                  <li>• Find the combination of selected balls that maximizes the reward while keeping combined weights below capacity</li>
+                  <li>• Once you think you have the right selection, click "confirm answer" to lock in your selection</li>
+                </ul>
+              </div>
+
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h4 className="font-semibold text-blue-700 mb-4 text-xl">🎯 Scoring</h4>
+                <ul className="text-lg text-gray-600 space-y-3">
+                  <li>• Answer is considered correct if and only if you find the most optimal selection of balls</li>
+                  <li>• All-or-nothing scoring system</li>
+                  <li>• Partial credit is not awarded</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       ),
@@ -446,25 +469,20 @@ export default function TutorialPhase({ onNext }: TutorialPhaseProps) {
     const question = sampleQuestions[currentSample]
 
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center">
-                <HelpCircle className="h-6 w-6 mr-2 text-blue-600" />
+              <CardTitle className="flex items-center text-2xl">
+                <HelpCircle className="h-8 w-8 mr-3 text-blue-600" />
                 Sample Question {currentSample + 1} of {sampleQuestions.length}
               </CardTitle>
-              <Badge variant="outline">Tutorial</Badge>
+              <Badge variant="outline" className="text-lg px-4 py-2">Tutorial</Badge>
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8 p-8">
             <KnapsackQuestion question={question} showSolution={true} isInteractive={false} />
-
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-semibold text-green-800 mb-2">Solution Explanation:</h4>
-              <p className="text-green-700">{question.explanation}</p>
-            </div>
 
             <div className="flex justify-between">
               <Button
@@ -487,18 +505,18 @@ export default function TutorialPhase({ onNext }: TutorialPhaseProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <Card className="shadow-lg">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl">{steps[currentStep].title}</CardTitle>
-            <Badge variant="outline">
+            <CardTitle className="text-3xl font-bold">{steps[currentStep].title}</CardTitle>
+            <Badge variant="outline" className="text-lg px-4 py-2">
               Step {currentStep + 1} of {steps.length}
             </Badge>
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}

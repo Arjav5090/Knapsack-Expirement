@@ -107,7 +107,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
 
   if (showInstructions) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -157,7 +157,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
     const totalWords = Object.values(answers).reduce((sum, answer) => sum + wordCount(answer), 0)
 
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -212,7 +212,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   const progress = ((currentQuestion + 1) / strategyQuestions.length) * 100
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       {/* Progress indicator */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">

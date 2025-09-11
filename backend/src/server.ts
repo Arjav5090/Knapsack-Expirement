@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { SessionModel } from './models/Session';
 import { connectMongo } from './db';
 import { router as participantRoutes } from './routes/participantRoutes';
+import { questionRouter } from './routes/questionRoutes';
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
@@ -12,6 +13,7 @@ const port = Number(process.env.PORT || 8787);
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(',') ?? true }));
 app.use(express.json({ limit: '2mb' }));
 app.use(participantRoutes);
+app.use(questionRouter);
 // secure with bearer token
 app.use((req, res, next) => {
   if (!req.path.startsWith('/api/')) return next();
