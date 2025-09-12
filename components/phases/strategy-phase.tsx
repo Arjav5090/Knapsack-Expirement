@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -47,6 +47,9 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   const [showInstructions, setShowInstructions] = useState(true)
   const [isComplete, setIsComplete] = useState(false)
 
+  // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
+  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8787", [])
+
   const handleAnswerChange = (questionId: number, answer: string) => {
     setAnswers(prev => ({
       ...prev,
@@ -81,7 +84,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
     }
   
     try {
-      const res = await fetch("http://localhost:8787/api/v1/ingest-phase", {
+      const res = await fetch(`${API_BASE}/api/v1/ingest-phase`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

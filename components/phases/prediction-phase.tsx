@@ -11,6 +11,7 @@ import KnapsackQuestion from "@/components/knapsack-question"
 import { getOrGenerateQuestions } from "@/lib/api"
 import { createPhaseQuestions } from "@/lib/question-utils"
 import type { Question } from "@/lib/knapsack-generator"
+import { useMemo } from "react"
 
 interface PredictionPhaseProps {
   onNext: () => void
@@ -34,6 +35,9 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(true)
   const [questionLoadError, setQuestionLoadError] = useState<string | null>(null)
   const [participantId, setParticipantId] = useState<string | null>(null)
+
+  // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
+  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8787", [])
 
   // Load participant ID
   useEffect(() => {
@@ -150,7 +154,7 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
     }
   
     try {
-      const res = await fetch("http://localhost:8787/api/v1/ingest-phase", {
+      const res = await fetch(`${API_BASE}/api/v1/ingest-phase`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

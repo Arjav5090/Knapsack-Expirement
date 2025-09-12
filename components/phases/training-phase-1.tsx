@@ -280,7 +280,10 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
       onNext()
     } catch (err) {
       console.error("[Practice] ingest-phase error:", err)
-      alert("There was an error submitting your practice data. See console for details.")
+      // If backend is not available, still proceed to next phase with local data
+      console.log("[Practice] Backend unavailable, proceeding with local data only")
+      updateParticipantData({ training1: payload.data })
+      onNext()
     }
   }
 
