@@ -13,7 +13,15 @@ const participantRoutes_1 = require("./routes/participantRoutes");
 const questionRoutes_1 = require("./routes/questionRoutes");
 const app = (0, express_1.default)();
 const port = Number(process.env.PORT || 8787);
-app.use((0, cors_1.default)({ origin: process.env.CORS_ORIGIN?.split(',') ?? true }));
+app.use((0, cors_1.default)({
+    origin: [
+        'https://arjav5090.github.io',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        ...(process.env.CORS_ORIGIN?.split(',') ?? [])
+    ],
+    credentials: true
+}));
 app.use(express_1.default.json({ limit: '2mb' }));
 app.use(participantRoutes_1.router);
 app.use(questionRoutes_1.questionRouter);
