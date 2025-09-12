@@ -77,21 +77,8 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
           setQuestionLoadError(null) // Clear error since we have fallback questions
         } catch (localError) {
           console.error("[Benchmark] Local question generation also failed:", localError)
-          // Final fallback to a simple question if generation fails
-          const fallbackQuestion: Question = {
-            id: 1,
-            capacity: 15,
-            balls: [
-              { id: 1, weight: 8, reward: 24, color: "bg-red-500" },
-              { id: 2, weight: 6, reward: 18, color: "bg-blue-500" },
-              { id: 3, weight: 4, reward: 12, color: "bg-green-500" },
-              { id: 4, weight: 3, reward: 9, color: "bg-yellow-500" },
-            ],
-            solution: [1, 2],
-            explanation: "Select balls 1 and 2 for optimal reward within capacity.",
-            difficulty: "medium"
-          }
-          setQuestions([fallbackQuestion])
+          // If local generation fails, show error and don't proceed
+          setQuestionLoadError("Failed to generate questions. Please refresh the page to try again.")
         }
         
       } finally {

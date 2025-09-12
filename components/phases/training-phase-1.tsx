@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
 import { getOrGenerateQuestions } from "@/lib/api"
 import { createPhaseQuestions } from "@/lib/question-utils"
+import { generateQuestionSet } from "@/lib/knapsack-generator"
 import type { Question } from "@/lib/knapsack-generator"
 
 interface TrainingPhase1Props {
@@ -35,11 +36,15 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
   // 🔑 Load participantId from localStorage once
   const [pid, setPid] = useState<string | null>(null)
   useEffect(() => {
+    console.log("[Practice] Loading participant ID from localStorage")
     try {
       const stored = localStorage.getItem("participantId")
+      console.log("[Practice] Stored participant ID:", stored)
       setPid(stored)
       if (!stored) {
         console.warn("[Practice] No participantId in localStorage. Did registration run on page load?")
+      } else {
+        console.log("[Practice] Set participant ID to:", stored)
       }
     } catch (e) {
       console.error("[Practice] Failed to read participantId from localStorage", e)
@@ -48,10 +53,58 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
 
   // 🔄 Load questions dynamically when participant ID is available
   useEffect(() => {
-    if (!pid) return
+    console.log("[Practice] useEffect triggered, pid:", pid)
+    if (!pid) {
+      console.log("[Practice] No participant ID available, skipping question loading")
+      return
+    }
 
     const loadQuestions = async () => {
+      console.log("[Practice] loadQuestions function called")
+      
+      // Set a timeout to force local generation if loading takes too long
+      const timeoutId = setTimeout(() => {
+        console.log("[Practice] Question loading timeout - trying local generation")
+        try {
+          const localQuestions = createPhaseQuestions('training', 6)
+          console.log("[Practice] Timeout fallback - generated local questions:", localQuestions)
+          if (localQuestions && localQuestions.length > 0) {
+            setAllQuestions(localQuestions)
+            setIsLoadingQuestions(false)
+            setQuestionLoadError(null)
+          } else {
+            throw new Error("Timeout fallback returned empty questions")
+          }
+        } catch (error) {
+          console.error("[Practice] Timeout fallback also failed:", error)
+          // Try simple generation as last resort
+          try {
+            const simpleQuestions = generateQuestionSet(6, {
+              numItems: 3,
+              minWeight: 2,
+              maxWeight: 8,
+              minReward: 6,
+              maxReward: 24,
+              difficultyLevel: 'easy',
+              ensureUniqueSolution: false
+            })
+            if (simpleQuestions && simpleQuestions.length > 0) {
+              setAllQuestions(simpleQuestions)
+              setIsLoadingQuestions(false)
+              setQuestionLoadError(null)
+            } else {
+              throw new Error("Simple timeout fallback also failed")
+            }
+          } catch (simpleError) {
+            console.error("[Practice] Simple timeout fallback also failed:", simpleError)
+            setQuestionLoadError("Question generation timed out. Please refresh the page to try again.")
+            setIsLoadingQuestions(false)
+          }
+        }
+      }, 10000) // 10 second timeout
+      
       try {
+        console.log("[Practice] Setting isLoadingQuestions to true")
         setIsLoadingQuestions(true)
         setQuestionLoadError(null)
         
@@ -64,39 +117,63 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
           count: 6
         })
         
+        clearTimeout(timeoutId) // Clear timeout if successful
+        
         console.log("[Practice] Loaded questions:", questions)
         setAllQuestions(questions)
         
       } catch (error) {
+        clearTimeout(timeoutId) // Clear timeout on error
         console.error("[Practice] Failed to load questions from backend:", error)
         setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions from backend')
         
         // Fallback to local question generation
         console.log("[Practice] Falling back to local question generation")
         try {
+          console.log("[Practice] Calling createPhaseQuestions('training', 6)")
           const localQuestions = createPhaseQuestions('training', 6)
           console.log("[Practice] Generated local questions:", localQuestions)
-          setAllQuestions(localQuestions)
-          setQuestionLoadError(null) // Clear error since we have fallback questions
+          console.log("[Practice] Number of questions generated:", localQuestions.length)
+          
+          if (localQuestions && localQuestions.length > 0) {
+            setAllQuestions(localQuestions)
+            setQuestionLoadError(null) // Clear error since we have fallback questions
+            console.log("[Practice] Successfully set local questions")
+          } else {
+            throw new Error("Local generation returned empty questions array")
+          }
         } catch (localError) {
           console.error("[Practice] Local question generation also failed:", localError)
-          // Final fallback to a simple hardcoded question
-          const fallbackQuestion: Question = {
-            id: 1,
-            capacity: 10,
-            balls: [
-              { id: 1, weight: 6, reward: 18, color: "bg-red-500" },
-              { id: 2, weight: 4, reward: 12, color: "bg-blue-500" },
-              { id: 3, weight: 3, reward: 9, color: "bg-green-500" },
-            ],
-            solution: [1, 2],
-            explanation: "Select balls 1 and 2 for optimal reward while staying within capacity.",
-            difficulty: "easy"
+          console.error("[Practice] Local error details:", localError)
+          // Try a simpler approach with direct question generation
+          try {
+            console.log("[Practice] Trying simpler question generation approach")
+            const simpleQuestions = generateQuestionSet(6, {
+              numItems: 3,
+              minWeight: 2,
+              maxWeight: 8,
+              minReward: 6,
+              maxReward: 24,
+              difficultyLevel: 'easy',
+              ensureUniqueSolution: false
+            })
+            console.log("[Practice] Simple questions generated:", simpleQuestions)
+            if (simpleQuestions && simpleQuestions.length > 0) {
+              setAllQuestions(simpleQuestions)
+              setQuestionLoadError(null)
+              console.log("[Practice] Successfully set simple questions")
+            } else {
+              throw new Error("Simple generation also returned empty array")
+            }
+          } catch (simpleError) {
+            console.error("[Practice] Simple generation also failed:", simpleError)
+            setQuestionLoadError("Failed to generate questions. Please refresh the page to try again.")
           }
-          setAllQuestions([fallbackQuestion])
         }
         
       } finally {
+        clearTimeout(timeoutId) // Clear timeout in finally block
+        console.log("[Practice] Finally block executed - setting isLoadingQuestions to false")
         setIsLoadingQuestions(false)
       }
     }
@@ -234,6 +311,54 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
                   <span className="text-xs">Falling back to backup questions...</span>
                 </div>
               )}
+              <div className="mt-4">
+                <Button 
+                  onClick={() => {
+                    console.log("[Practice] Manual test - generating local questions")
+                    try {
+                      const testQuestions = createPhaseQuestions('training', 6)
+                      console.log("[Practice] Test questions generated:", testQuestions)
+                      if (testQuestions && testQuestions.length > 0) {
+                        setAllQuestions(testQuestions)
+                        setIsLoadingQuestions(false)
+                        setQuestionLoadError(null)
+                        console.log("[Practice] Test questions set successfully")
+                      } else {
+                        throw new Error("Test generation returned empty array")
+                      }
+                    } catch (error) {
+                      console.error("[Practice] Test generation failed:", error)
+                      // Try simple generation
+                      try {
+                        const simpleQuestions = generateQuestionSet(6, {
+                          numItems: 3,
+                          minWeight: 2,
+                          maxWeight: 8,
+                          minReward: 6,
+                          maxReward: 24,
+                          difficultyLevel: 'easy',
+                          ensureUniqueSolution: false
+                        })
+                        if (simpleQuestions && simpleQuestions.length > 0) {
+                          setAllQuestions(simpleQuestions)
+                          setIsLoadingQuestions(false)
+                          setQuestionLoadError(null)
+                          console.log("[Practice] Simple test questions set successfully")
+                        } else {
+                          setQuestionLoadError("Test generation failed - no questions generated")
+                        }
+                      } catch (simpleError) {
+                        console.error("[Practice] Simple test generation also failed:", simpleError)
+                        setQuestionLoadError("Test generation failed - please check console for details")
+                      }
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Test Local Generation
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
