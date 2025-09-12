@@ -182,7 +182,7 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
   }, [pid])
 
   // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
-  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8787", [])
+  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "https://knapsack-expirement.onrender.com", [])
 
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
     const newAnswer = {

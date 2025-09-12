@@ -37,7 +37,7 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
   const [participantId, setParticipantId] = useState<string | null>(null)
 
   // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
-  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8787", [])
+  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "https://knapsack-expirement.onrender.com", [])
 
   // Load participant ID
   useEffect(() => {

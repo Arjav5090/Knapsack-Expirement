@@ -48,7 +48,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   const [isComplete, setIsComplete] = useState(false)
 
   // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
-  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8787", [])
+  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "https://knapsack-expirement.onrender.com", [])
 
   const handleAnswerChange = (questionId: number, answer: string) => {
     setAnswers(prev => ({

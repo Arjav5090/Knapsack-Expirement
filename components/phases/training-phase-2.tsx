@@ -253,7 +253,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     }
 
      try {
-       const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8787"
+       const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://knapsack-expirement.onrender.com"
        const res = await fetch(`${API_BASE}/api/v1/ingest-phase`, {
          method: "POST",
          headers: { "Content-Type": "application/json" },
