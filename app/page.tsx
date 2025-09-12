@@ -148,8 +148,8 @@ export default function KnapsackExperiment() {
 
   const completeProlificStudy = () => {
     if (prolificParams.prolificPid) {
-      // Redirect to Prolific completion page
-      const completionUrl = `https://app.prolific.co/submissions/complete?cc=C1234567` // Replace with your completion code
+      // Redirect to Prolific completion page with actual completion code
+      const completionUrl = `https://app.prolific.co/submissions/complete?cc=KNAPSACK2024` // Use your actual completion code from Prolific dashboard
       window.location.href = completionUrl
     }
   }
