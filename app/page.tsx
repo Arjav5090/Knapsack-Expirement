@@ -94,6 +94,15 @@ export default function KnapsackExperiment() {
   const [accessAllowed, setAccessAllowed] = useState(false)
 
   useEffect(() => {
+    // First, check if participant ID already exists in localStorage
+    const existingParticipantId = localStorage.getItem('participantId')
+    if (existingParticipantId) {
+      console.log("[Registration] Found existing participant ID:", existingParticipantId)
+      setParticipantId(existingParticipantId)
+      setAccessAllowed(true)
+      return // Skip registration if we already have an ID
+    }
+
     // Check for Prolific parameters and restrict access
     const urlParams = new URLSearchParams(window.location.search)
     const prolificPid = urlParams.get('PROLIFIC_PID')
@@ -113,9 +122,19 @@ export default function KnapsackExperiment() {
       // Register participant with Prolific ID
       registerParticipantWithProlific(prolificPid, studyId, sessionId)
         .then((id) => {
+          console.log("[Registration] Setting participant ID:", id)
           setParticipantId(id)
+          localStorage.setItem('participantId', id)
+          console.log("[Registration] Saved participant ID to localStorage")
         })
-        .catch(console.error)
+        .catch((error) => {
+          console.error("[Registration] Failed to register participant:", error)
+          // Fallback: generate local participant ID
+          const fallbackId = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+          console.log("[Registration] Using fallback participant ID:", fallbackId)
+          setParticipantId(fallbackId)
+          localStorage.setItem('participantId', fallbackId)
+        })
     } else {
       // For development, allow access without Prolific params if on localhost
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
@@ -123,11 +142,26 @@ export default function KnapsackExperiment() {
         // Fallback registration for development
         registerParticipant()
           .then((id) => {
+            console.log("[Registration] Setting participant ID (dev):", id)
             setParticipantId(id)
+            localStorage.setItem('participantId', id)
+            console.log("[Registration] Saved participant ID to localStorage (dev)")
           })
-          .catch(console.error)
+          .catch((error) => {
+            console.error("[Registration] Failed to register participant (dev):", error)
+            // Fallback: generate local participant ID
+            const fallbackId = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+            console.log("[Registration] Using fallback participant ID (dev):", fallbackId)
+            setParticipantId(fallbackId)
+            localStorage.setItem('participantId', fallbackId)
+          })
       } else {
-        setAccessAllowed(false)
+        // For production without Prolific params, still allow access but generate local ID
+        console.log("[Registration] No Prolific params, generating local participant ID")
+        const fallbackId = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+        setParticipantId(fallbackId)
+        localStorage.setItem('participantId', fallbackId)
+        setAccessAllowed(true)
       }
     }
   }, [])
