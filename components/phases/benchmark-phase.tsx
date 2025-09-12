@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Clock, BarChart3, Star, ChevronLeft, ChevronRight, Zap } from "lucide-react"
 import KnapsackQuestion from "@/components/knapsack-question"
 import { getOrGenerateQuestions } from "@/lib/api"
+import { createPhaseQuestions } from "@/lib/question-utils"
 import type { Question } from "@/lib/knapsack-generator"
 
 interface BenchmarkPhaseProps {
@@ -64,24 +65,34 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
         setQuestions(generatedQuestions)
         
       } catch (error) {
-        console.error("[Benchmark] Failed to load questions:", error)
-        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions')
+        console.error("[Benchmark] Failed to load questions from backend:", error)
+        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions from backend')
         
-        // Fallback to a simple question if generation fails
-        const fallbackQuestion: Question = {
-          id: 1,
-          capacity: 15,
-          balls: [
-            { id: 1, weight: 8, reward: 24, color: "bg-red-500" },
-            { id: 2, weight: 6, reward: 18, color: "bg-blue-500" },
-            { id: 3, weight: 4, reward: 12, color: "bg-green-500" },
-            { id: 4, weight: 3, reward: 9, color: "bg-yellow-500" },
-          ],
-          solution: [1, 2],
-          explanation: "Select balls 1 and 2 for optimal reward within capacity.",
-          difficulty: "medium"
+        // Fallback to local question generation
+        console.log("[Benchmark] Falling back to local question generation")
+        try {
+          const localQuestions = createPhaseQuestions('benchmark', 15)
+          console.log("[Benchmark] Generated local questions:", localQuestions)
+          setQuestions(localQuestions)
+          setQuestionLoadError(null) // Clear error since we have fallback questions
+        } catch (localError) {
+          console.error("[Benchmark] Local question generation also failed:", localError)
+          // Final fallback to a simple question if generation fails
+          const fallbackQuestion: Question = {
+            id: 1,
+            capacity: 15,
+            balls: [
+              { id: 1, weight: 8, reward: 24, color: "bg-red-500" },
+              { id: 2, weight: 6, reward: 18, color: "bg-blue-500" },
+              { id: 3, weight: 4, reward: 12, color: "bg-green-500" },
+              { id: 4, weight: 3, reward: 9, color: "bg-yellow-500" },
+            ],
+            solution: [1, 2],
+            explanation: "Select balls 1 and 2 for optimal reward within capacity.",
+            difficulty: "medium"
+          }
+          setQuestions([fallbackQuestion])
         }
-        setQuestions([fallbackQuestion])
         
       } finally {
         setIsLoadingQuestions(false)

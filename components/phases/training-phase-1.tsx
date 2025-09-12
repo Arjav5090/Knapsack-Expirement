@@ -9,6 +9,7 @@ import { Target, CheckCircle, XCircle, AlertTriangle, Zap } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
 import { getOrGenerateQuestions } from "@/lib/api"
+import { createPhaseQuestions } from "@/lib/question-utils"
 import type { Question } from "@/lib/knapsack-generator"
 
 interface TrainingPhase1Props {
@@ -67,23 +68,33 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
         setAllQuestions(questions)
         
       } catch (error) {
-        console.error("[Practice] Failed to load questions:", error)
-        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions')
+        console.error("[Practice] Failed to load questions from backend:", error)
+        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions from backend')
         
-        // Fallback to a simple hardcoded question if generation fails
-        const fallbackQuestion: Question = {
-          id: 1,
-          capacity: 10,
-          balls: [
-            { id: 1, weight: 6, reward: 18, color: "bg-red-500" },
-            { id: 2, weight: 4, reward: 12, color: "bg-blue-500" },
-            { id: 3, weight: 3, reward: 9, color: "bg-green-500" },
-          ],
-          solution: [1, 2],
-          explanation: "Select balls 1 and 2 for optimal reward while staying within capacity.",
-          difficulty: "easy"
+        // Fallback to local question generation
+        console.log("[Practice] Falling back to local question generation")
+        try {
+          const localQuestions = createPhaseQuestions('training', 6)
+          console.log("[Practice] Generated local questions:", localQuestions)
+          setAllQuestions(localQuestions)
+          setQuestionLoadError(null) // Clear error since we have fallback questions
+        } catch (localError) {
+          console.error("[Practice] Local question generation also failed:", localError)
+          // Final fallback to a simple hardcoded question
+          const fallbackQuestion: Question = {
+            id: 1,
+            capacity: 10,
+            balls: [
+              { id: 1, weight: 6, reward: 18, color: "bg-red-500" },
+              { id: 2, weight: 4, reward: 12, color: "bg-blue-500" },
+              { id: 3, weight: 3, reward: 9, color: "bg-green-500" },
+            ],
+            solution: [1, 2],
+            explanation: "Select balls 1 and 2 for optimal reward while staying within capacity.",
+            difficulty: "easy"
+          }
+          setAllQuestions([fallbackQuestion])
         }
-        setAllQuestions([fallbackQuestion])
         
       } finally {
         setIsLoadingQuestions(false)

@@ -65,21 +65,35 @@ export async function generateQuestions(params: {
   count?: number;
   seed?: number;
 }): Promise<GenerateQuestionsResponse> {
-  const res = await fetch(`${API_BASE}/api/v1/questions/generate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(params)
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-  if (!res.ok) {
-    const error = await res.json();
-    console.error('[generateQuestions] failed', error);
-    throw new Error(error.error || 'Question generation failed');
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/questions/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(params),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const error = await res.json();
+      console.error('[generateQuestions] failed', error);
+      throw new Error(error.error || 'Question generation failed');
+    }
+
+    return res.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Question generation timed out after 30 seconds');
+    }
+    throw error;
   }
-
-  return res.json();
 }
 
 /**
@@ -89,20 +103,34 @@ export async function getQuestions(
   participantId: string, 
   phase: string
 ): Promise<QuestionSetResponse> {
-  const res = await fetch(`${API_BASE}/api/v1/questions/${participantId}/${phase}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/questions/${participantId}/${phase}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const error = await res.json();
+      console.error('[getQuestions] failed', error);
+      throw new Error(error.error || 'Failed to retrieve questions');
     }
-  });
 
-  if (!res.ok) {
-    const error = await res.json();
-    console.error('[getQuestions] failed', error);
-    throw new Error(error.error || 'Failed to retrieve questions');
+    return res.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Question retrieval timed out after 15 seconds');
+    }
+    throw error;
   }
-
-  return res.json();
 }
 
 /**
