@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Target, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
+import { Target, CheckCircle, XCircle, AlertTriangle, Zap } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
+import { getOrGenerateQuestions } from "@/lib/api"
+import type { Question } from "@/lib/knapsack-generator"
 
 interface TrainingPhase1Props {
   onNext: () => void
@@ -15,94 +17,7 @@ interface TrainingPhase1Props {
   updateParticipantData: (data: any) => void
 }
 
-const practiceQuestions = [
-  { id: 1, capacity: 8, balls: [
-      { id: 1, weight: 4, reward: 12, color: "bg-red-500" },
-      { id: 2, weight: 3, reward: 10, color: "bg-blue-500" },
-      { id: 3, weight: 5, reward: 15, color: "bg-green-500" },
-    ],
-    solution: [2, 3],
-    explanation: "Select balls 2 and 3 for total weight 8 and reward 25.",
-  },
-  { id: 2, capacity: 12, balls: [
-      { id: 1, weight: 6, reward: 18, color: "bg-purple-500" },
-      { id: 2, weight: 4, reward: 12, color: "bg-yellow-500" },
-      { id: 3, weight: 3, reward: 8, color: "bg-pink-500" },
-      { id: 4, weight: 5, reward: 16, color: "bg-indigo-500" },
-    ],
-    solution: [1, 2],
-    explanation: "Select balls 1 and 2 for total weight 10 and reward 30.",
-  },
-  { id: 3, capacity: 15, balls: [
-      { id: 1, weight: 8, reward: 24, color: "bg-red-500" },
-      { id: 2, weight: 6, reward: 18, color: "bg-blue-500" },
-      { id: 3, weight: 4, reward: 12, color: "bg-green-500" },
-      { id: 4, weight: 3, reward: 9, color: "bg-yellow-500" },
-      { id: 5, weight: 2, reward: 6, color: "bg-purple-500" },
-    ],
-    solution: [1, 2],
-    explanation: "Select balls 1 and 2 for total weight 14 and reward 42.",
-  },
-  { id: 4, capacity: 10, balls: [
-      { id: 1, weight: 5, reward: 20, color: "bg-orange-500" },
-      { id: 2, weight: 4, reward: 15, color: "bg-teal-500" },
-      { id: 3, weight: 6, reward: 22, color: "bg-rose-500" },
-      { id: 4, weight: 3, reward: 12, color: "bg-cyan-500" },
-    ],
-    solution: [1, 2],
-    explanation: "Select balls 1 and 2 for total weight 9 and reward 35.",
-  },
-  { id: 5, capacity: 20, balls: [
-      { id: 1, weight: 10, reward: 30, color: "bg-red-500" },
-      { id: 2, weight: 8, reward: 24, color: "bg-blue-500" },
-      { id: 3, weight: 6, reward: 18, color: "bg-green-500" },
-      { id: 4, weight: 4, reward: 12, color: "bg-yellow-500" },
-      { id: 5, weight: 12, reward: 36, color: "bg-purple-500" },
-    ],
-    solution: [2, 5],
-    explanation: "Select balls 2 and 5 for total weight 20 and reward 60.",
-  },
-  { id: 6, capacity: 25, balls: [
-      { id: 1, weight: 15, reward: 45, color: "bg-indigo-500" },
-      { id: 2, weight: 10, reward: 30, color: "bg-pink-500" },
-      { id: 3, weight: 8, reward: 24, color: "bg-orange-500" },
-      { id: 4, weight: 6, reward: 18, color: "bg-teal-500" },
-      { id: 5, weight: 12, reward: 36, color: "bg-rose-500" },
-      { id: 6, weight: 5, reward: 15, color: "bg-cyan-500" },
-    ],
-    solution: [1, 2],
-    explanation: "Select balls 1 and 2 for total weight 25 and reward 75.",
-  },
-]
-
-const extraPracticeQuestions = [
-  {
-    id: 6,
-    capacity: 18,
-    balls: [
-      { id: 1, weight: 10, reward: 32, color: "bg-violet-500" },
-      { id: 2, weight: 7, reward: 21, color: "bg-emerald-500" },
-      { id: 3, weight: 8, reward: 25, color: "bg-amber-500" },
-      { id: 4, weight: 5, reward: 15, color: "bg-sky-500" },
-    ],
-    solution: [1, 2],
-    explanation: "Select balls 1 and 2 for total weight 17 and reward 53.",
-  },
-  {
-    id: 7,
-    capacity: 25,
-    balls: [
-      { id: 1, weight: 15, reward: 45, color: "bg-lime-500" },
-      { id: 2, weight: 12, reward: 36, color: "bg-rose-500" },
-      { id: 3, weight: 8, reward: 24, color: "bg-cyan-500" },
-      { id: 4, weight: 6, reward: 18, color: "bg-fuchsia-500" },
-      { id: 5, weight: 4, reward: 12, color: "bg-slate-500" },
-    ],
-    solution: [1, 3, 5],
-    explanation:
-      "Select balls 1, 3, and 5 for total weight 27 and reward 81. Wait, that exceeds capacity! The correct solution is balls 1 and 3 for weight 23 and reward 69.",
-  },
-]
+// Questions will be loaded dynamically from the backend/generator
 
 export default function TrainingPhase1({ onNext, updateParticipantData }: TrainingPhase1Props) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
@@ -112,7 +27,9 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
   const [showInstructions, setShowInstructions] = useState(true)
   const [wantMorePractice, setWantMorePractice] = useState<boolean | null>(null)
   const [isExtraPractice, setIsExtraPractice] = useState(false)
-  const [allQuestions, setAllQuestions] = useState(practiceQuestions)
+  const [allQuestions, setAllQuestions] = useState<Question[]>([])
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true)
+  const [questionLoadError, setQuestionLoadError] = useState<string | null>(null)
 
   // 🔑 Load participantId from localStorage once
   const [pid, setPid] = useState<string | null>(null)
@@ -127,6 +44,54 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
       console.error("[Practice] Failed to read participantId from localStorage", e)
     }
   }, [])
+
+  // 🔄 Load questions dynamically when participant ID is available
+  useEffect(() => {
+    if (!pid) return
+
+    const loadQuestions = async () => {
+      try {
+        setIsLoadingQuestions(true)
+        setQuestionLoadError(null)
+        
+        console.log("[Practice] Loading dynamic questions for participant:", pid)
+        
+        // Load initial training questions (6 questions, easy difficulty)
+        const questions = await getOrGenerateQuestions({
+          participantId: pid,
+          phase: 'practice', // Use 'practice' phase for training-phase-1
+          count: 6
+        })
+        
+        console.log("[Practice] Loaded questions:", questions)
+        setAllQuestions(questions)
+        
+      } catch (error) {
+        console.error("[Practice] Failed to load questions:", error)
+        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions')
+        
+        // Fallback to a simple hardcoded question if generation fails
+        const fallbackQuestion: Question = {
+          id: 1,
+          capacity: 10,
+          balls: [
+            { id: 1, weight: 6, reward: 18, color: "bg-red-500" },
+            { id: 2, weight: 4, reward: 12, color: "bg-blue-500" },
+            { id: 3, weight: 3, reward: 9, color: "bg-green-500" },
+          ],
+          solution: [1, 2],
+          explanation: "Select balls 1 and 2 for optimal reward while staying within capacity.",
+          difficulty: "easy"
+        }
+        setAllQuestions([fallbackQuestion])
+        
+      } finally {
+        setIsLoadingQuestions(false)
+      }
+    }
+
+    loadQuestions()
+  }, [pid])
 
   // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
   const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8787", [])
@@ -154,12 +119,34 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
     }
   }
 
-  const startExtraPractice = () => {
-    setWantMorePractice(true)
-    setIsExtraPractice(true)
-    setAllQuestions([...practiceQuestions, ...extraPracticeQuestions])
-    setCurrentQuestion(practiceQuestions.length) // Start from first extra question
-    setWantMorePractice(null) // Back to questions
+  const startExtraPractice = async () => {
+    if (!pid) return
+    
+    try {
+      setIsLoadingQuestions(true)
+      setWantMorePractice(true)
+      setIsExtraPractice(true)
+      
+      // Generate additional questions for extra practice
+      const extraQuestions = await getOrGenerateQuestions({
+        participantId: pid,
+        phase: 'practice-extra', // Different phase for extra practice
+        count: 4 // 4 additional questions
+      })
+      
+      // Combine original questions with extra ones
+      const combinedQuestions = [...allQuestions, ...extraQuestions]
+      setAllQuestions(combinedQuestions)
+      setCurrentQuestion(allQuestions.length) // Start from first extra question
+      setWantMorePractice(null) // Back to questions
+      
+    } catch (error) {
+      console.error("[Practice] Failed to load extra questions:", error)
+      // If extra question generation fails, just continue with existing questions
+      setWantMorePractice(null)
+    } finally {
+      setIsLoadingQuestions(false)
+    }
   }
 
   const handleComplete = async () => {
@@ -211,9 +198,41 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
 
   // UI
 
+  // Loading state while questions are being generated/loaded
+  if (isLoadingQuestions) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <Card className="shadow-lg">
+          <CardContent className="p-8 text-center">
+            <div className="space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
+                <Zap className="h-8 w-8 text-white animate-pulse" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Generating Dynamic Questions</h2>
+              <p className="text-gray-600 max-w-md mx-auto">
+                Creating personalized knapsack problems using our sophisticated academic algorithm...
+              </p>
+              <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                <span>This may take a few moments</span>
+              </div>
+              {questionLoadError && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  Error: {questionLoadError}
+                  <br />
+                  <span className="text-xs">Falling back to backup questions...</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (showInstructions) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {!pid && (
           <div className="mb-4 flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 rounded p-3">
             <AlertTriangle className="h-4 w-4" />
@@ -234,25 +253,36 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
 
               <div className="space-y-6 text-green-700">
                 <p className="text-lg">
-                  In this section, you can practice with sample questions. You will see a total of
-                  <strong> 6 questions</strong> to help you get familiar with the knapsack puzzle.
+                  In this section, you can practice with dynamically generated questions. You will see a total of
+                  <strong> {allQuestions.length} questions</strong> to help you get familiar with the knapsack puzzle.
                 </p>
+
+                {questionLoadError && (
+                  <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4">
+                    <p className="text-yellow-800 text-sm">
+                      <strong>Note:</strong> We encountered an issue generating questions dynamically, so we're using backup questions for this session.
+                    </p>
+                  </div>
+                )}
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-white p-6 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4">📚 Learning Features</h4>
+                    <h4 className="text-lg font-semibold mb-4">🧠 Dynamic Generation</h4>
                     <ul className="text-base space-y-2">
-                      <li>• When you answer a question, you will see the solution and an explanation.</li>
-                      <li>• No time constraint for you to finish questions, so take your time!</li>
+                      <li>• Questions are generated using academic algorithms</li>
+                      <li>• Difficulty controlled by dominance relationships</li>
+                      <li>• Each question has a unique optimal solution</li>
+                      <li>• No time constraint - take your time to learn!</li>
                     </ul>
                   </div>
 
                   <div className="bg-white p-6 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4">🎯 For Every Question</h4>
+                    <h4 className="text-lg font-semibold mb-4">🎯 How to Play</h4>
                     <ul className="text-base space-y-2">
-                      <li>• Click once to select a ball, click on a selected ball again to deselect.</li>
-                      <li>• Find the combination of selected balls that maximizes the reward while keeping combined weights below capacity.</li>
-                      <li>• Once you think you have the right selection, click "confirm answer" to lock in your selection.</li>
+                      <li>• Click once to select a ball, click again to deselect</li>
+                      <li>• Maximize reward while staying within capacity</li>
+                      <li>• Click "confirm answer" to lock in your selection</li>
+                      <li>• See solutions and explanations after each answer</li>
                     </ul>
                   </div>
                 </div>
@@ -275,7 +305,7 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
     const accuracy = (answers.length ? (correctAnswers / answers.length) : 0) * 100
 
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -337,18 +367,31 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
     )
   }
 
+  // Guard: Don't render if no questions loaded
+  if (!allQuestions.length) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <Card className="shadow-lg">
+          <CardContent className="p-8 text-center">
+            <div className="text-gray-500">No questions available</div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   const question = allQuestions[currentQuestion]
   const progress = ((currentQuestion + 1) / allQuestions.length) * 100
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Progress */}
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">
               Practice Question {currentQuestion + 1} of {allQuestions.length}
-              {isExtraPractice && currentQuestion >= practiceQuestions.length && " (Extra Practice)"}
+              {isExtraPractice && currentQuestion >= 6 && " (Extra Practice)"}
             </span>
             <div className="flex items-center gap-2">
               <Badge variant="outline">No Time Limit</Badge>
@@ -401,10 +444,18 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
             {/* Solution */}
             <KnapsackQuestion question={question} showSolution={true} isInteractive={false} />
 
-            <div className="text-center">
+            <div className="text-center space-y-3">
               <Button onClick={nextQuestion} size="lg">
                 {currentQuestion === allQuestions.length - 1 ? "Complete Practice" : "Next Question"}
               </Button>
+              
+              {isExtraPractice && currentQuestion >= 6 && (
+                <div>
+                  <Button onClick={handleComplete} variant="outline" size="lg" className="ml-4">
+                    End Extra Practice & Continue to Test 1
+                  </Button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

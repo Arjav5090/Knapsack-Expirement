@@ -19,6 +19,13 @@ const testPhaseSchema = new mongoose.Schema({
 const participantSchema = new mongoose.Schema({
   participantId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
+  prolificData: {
+    prolificPid: String,
+    studyId: String, 
+    sessionId: String,
+    registeredAt: Date,
+    completedAt: Date,
+  },
   tests: {
     practice: testPhaseSchema,
     skill: testPhaseSchema,

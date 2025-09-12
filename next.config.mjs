@@ -9,6 +9,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  output: 'export',                // 👈 important: tells Next to generate static HTML
+  basePath: '/Knapsack-Expirement' // 👈 matches your GitHub repo name
 }
 
 export default nextConfig

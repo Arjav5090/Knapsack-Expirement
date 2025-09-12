@@ -240,7 +240,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     const performanceScore = correctAnswers
 
     const payload = {
-      phase: "skill",
+      phase: "test1",
       participantId: localStorage.getItem("participantId"),
       data: {
         completed: true,
@@ -252,19 +252,19 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
       },
     }
 
-    try {
-      const res = await fetch("http://localhost:8787/api/v1/ingest-phase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
+     try {
+       const res = await fetch("https://knapsack-expirement.onrender.com/api/v1/ingest-phase", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify(payload),
+       })
 
-      if (!res.ok) throw new Error("Failed to submit skill test data")
-      console.log("[Skill Test] Submission successful ✅")
+      if (!res.ok) throw new Error("Failed to submit test data")
+      console.log("[Test 1] Submission successful ✅")
       updateParticipantData({ training2: payload.data, totalScore: performanceScore })
     } catch (err) {
-      console.error("[Skill Test] Submission failed ❌", err)
-      alert("There was an error submitting your skill test results.")
+      console.error("[Test 1] Submission failed ❌", err)
+      alert("There was an error submitting your test results.")
     }
   }
 
@@ -289,7 +289,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
   }[question.difficulty]
   if (showInstructions) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -304,7 +304,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
 
               <div className="space-y-6 text-orange-700">
                 <p className="text-lg">
-                  In this section, you will complete <strong>10 questions</strong> to assess your skills.
+                  In this section, you will complete <strong>10 questions</strong> in Test 1.
                   Once you start, you will have exactly <strong>15 minutes total</strong> to
                   complete all questions.
                 </p>
@@ -328,14 +328,14 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
                   <div className="bg-white p-6 rounded-lg">
                     <h4 className="text-lg font-semibold mb-4 flex items-center">
                       <Trophy className="h-5 w-5 mr-2" />
-                      Assessment
+                      Scoring
                     </h4>
                     <ul className="text-base space-y-2">
                       <li>
-                        • <strong>Correct answers</strong>: Contribute to your assessment
+                        • <strong>Correct answers</strong>: Contribute to your score
                       </li>
                       <li>
-                        • <strong>Incorrect answers</strong>: Do not contribute to your assessment
+                        • <strong>Incorrect answers</strong>: Do not contribute to your score
                       </li>
                       <li>
                         • <strong>Unanswered questions</strong>: Considered neutral
@@ -380,7 +380,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     const performanceScore = correctAnswers
 
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -420,7 +420,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
                   <p className="text-blue-800 font-medium">
                     You achieved a performance score of <strong>{performanceScore}</strong>!
                   </p>
-                  <p className="text-blue-700 text-sm mt-1">Great job completing the assessment.</p>
+                  <p className="text-blue-700 text-sm mt-1">Great job completing Test 1!</p>
                 </div>
 
                 <Button onClick={onNext} size="lg">
@@ -437,7 +437,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
  
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">

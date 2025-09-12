@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Clock, BarChart3, Star, ChevronLeft, ChevronRight } from "lucide-react"
+import { Clock, BarChart3, Star, ChevronLeft, ChevronRight, Zap } from "lucide-react"
 import KnapsackQuestion from "@/components/knapsack-question"
+import { getOrGenerateQuestions } from "@/lib/api"
+import type { Question } from "@/lib/knapsack-generator"
 
 interface BenchmarkPhaseProps {
   onNext: () => void
@@ -14,62 +16,10 @@ interface BenchmarkPhaseProps {
   updateParticipantData: (data: any) => void
 }
 
-// Generate 30 questions with mixed difficulty in HME pattern
-const generateBenchmarkQuestions = () => {
-  const hardQuestions = Array.from({ length: 10 }, (_, i) => ({
-    id: i * 3 + 1,
-    capacity: 35 + i * 2,
-    balls: [
-      { id: 1, weight: 20 + i, reward: 60 + i * 3, color: "bg-red-500" },
-      { id: 2, weight: 18 + i, reward: 54 + i * 3, color: "bg-blue-500" },
-      { id: 3, weight: 15 + i, reward: 45 + i * 3, color: "bg-green-500" },
-      { id: 4, weight: 12 + i, reward: 36 + i * 3, color: "bg-yellow-500" },
-      { id: 5, weight: 10 + i, reward: 30 + i * 3, color: "bg-purple-500" },
-      { id: 6, weight: 8 + i, reward: 24 + i * 3, color: "bg-pink-500" },
-    ],
-    solution: [1, 3],
-    difficulty: "hard",
-  }))
-
-  const mediumQuestions = Array.from({ length: 10 }, (_, i) => ({
-    id: i * 3 + 2,
-    capacity: 20 + i,
-    balls: [
-      { id: 1, weight: 10 + i, reward: 30 + i * 2, color: "bg-orange-500" },
-      { id: 2, weight: 8 + i, reward: 24 + i * 2, color: "bg-teal-500" },
-      { id: 3, weight: 6 + i, reward: 18 + i * 2, color: "bg-rose-500" },
-      { id: 4, weight: 5 + i, reward: 15 + i * 2, color: "bg-cyan-500" },
-      { id: 5, weight: 4 + i, reward: 12 + i * 2, color: "bg-lime-500" },
-    ],
-    solution: [1, 2],
-    difficulty: "medium",
-  }))
-
-  const easyQuestions = Array.from({ length: 10 }, (_, i) => ({
-    id: i * 3 + 3,
-    capacity: 12 + i,
-    balls: [
-      { id: 1, weight: 6 + i, reward: 18 + i, color: "bg-indigo-500" },
-      { id: 2, weight: 4 + i, reward: 12 + i, color: "bg-pink-500" },
-      { id: 3, weight: 3 + i, reward: 9 + i, color: "bg-orange-500" },
-    ],
-    solution: [1, 2],
-    difficulty: "easy",
-  }))
-
-  // Create HME pattern: Hard-Medium-Easy repeated
-  const questions = []
-  for (let i = 0; i < 5; i++) {
-    questions.push(hardQuestions[i])
-    questions.push(mediumQuestions[i])
-    questions.push(easyQuestions[i])
-  }
-
-  return questions
-}
+// Questions will be loaded dynamically from the backend/generator
 
 export default function BenchmarkPhase({ onNext, updateParticipantData }: BenchmarkPhaseProps) {
-  const [questions] = useState(generateBenchmarkQuestions())
+  const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<{
     [key: number]: { selected: number[]; confirmed: boolean; correct: boolean }
@@ -79,6 +29,67 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   const [timeLeft, setTimeLeft] = useState(20 * 60) // 20 minutes
   const [isComplete, setIsComplete] = useState(false)
   const [showFinishWarning, setShowFinishWarning] = useState(false)
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true)
+  const [questionLoadError, setQuestionLoadError] = useState<string | null>(null)
+  const [participantId, setParticipantId] = useState<string | null>(null)
+
+  // Load participant ID
+  useEffect(() => {
+    const stored = localStorage.getItem("participantId")
+    setParticipantId(stored)
+    if (!stored) {
+      console.warn("[Benchmark] No participantId in localStorage")
+    }
+  }, [])
+
+  // Load questions dynamically
+  useEffect(() => {
+    if (!participantId) return
+
+    const loadQuestions = async () => {
+      try {
+        setIsLoadingQuestions(true)
+        setQuestionLoadError(null)
+        
+        console.log("[Benchmark] Loading dynamic questions for participant:", participantId)
+        
+        // Load benchmark questions (15 questions, mixed difficulty)
+        const generatedQuestions = await getOrGenerateQuestions({
+          participantId,
+          phase: 'benchmark',
+          count: 15
+        })
+        
+        console.log("[Benchmark] Loaded questions:", generatedQuestions)
+        setQuestions(generatedQuestions)
+        
+      } catch (error) {
+        console.error("[Benchmark] Failed to load questions:", error)
+        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions')
+        
+        // Fallback to a simple question if generation fails
+        const fallbackQuestion: Question = {
+          id: 1,
+          capacity: 15,
+          balls: [
+            { id: 1, weight: 8, reward: 24, color: "bg-red-500" },
+            { id: 2, weight: 6, reward: 18, color: "bg-blue-500" },
+            { id: 3, weight: 4, reward: 12, color: "bg-green-500" },
+            { id: 4, weight: 3, reward: 9, color: "bg-yellow-500" },
+          ],
+          solution: [1, 2],
+          explanation: "Select balls 1 and 2 for optimal reward within capacity.",
+          difficulty: "medium"
+        }
+        setQuestions([fallbackQuestion])
+        
+      } finally {
+        setIsLoadingQuestions(false)
+      }
+    }
+
+    loadQuestions()
+  }, [participantId])
 
   // Timer
   useEffect(() => {
@@ -123,7 +134,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   
     const payload = {
       phase: "benchmark",
-      participantId: localStorage.getItem("participantId"),
+      participantId,
       data: {
         completed: true,
         correctAnswers,
@@ -186,9 +197,41 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
+  // Loading state while questions are being generated/loaded
+  if (isLoadingQuestions) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <Card className="shadow-lg">
+          <CardContent className="p-8 text-center">
+            <div className="space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl mb-4">
+                <Zap className="h-8 w-8 text-white animate-pulse" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Generating Benchmark Questions</h2>
+              <p className="text-gray-600 max-w-md mx-auto">
+                Creating a sophisticated test with mixed difficulty levels using academic algorithms...
+              </p>
+              <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
+                <span>Generating 15 questions with controlled difficulty progression</span>
+              </div>
+              {questionLoadError && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  Error: {questionLoadError}
+                  <br />
+                  <span className="text-xs">Falling back to backup questions...</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (showInstructions) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -203,9 +246,17 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
 
               <div className="space-y-6 text-purple-700">
                 <p className="text-lg">
-                  You will complete a test with <strong>15 knapsack questions</strong>. You
+                  You will complete a test with <strong>{questions.length} dynamically generated knapsack questions</strong>. You
                   have exactly <strong>20 minutes</strong> to complete the test.
                 </p>
+
+                {questionLoadError && (
+                  <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4 mb-4">
+                    <p className="text-yellow-800 text-sm">
+                      <strong>Note:</strong> We encountered an issue generating questions dynamically, so we're using backup questions for this session.
+                    </p>
+                  </div>
+                )}
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-white p-6 rounded-lg">
@@ -248,9 +299,10 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
                 onClick={() => setShowInstructions(false)}
                 size="lg"
                 className="bg-purple-600 hover:bg-purple-700"
+                disabled={questions.length === 0}
               >
                 <Clock className="h-5 w-5 mr-2" />
-                Start Benchmark Test
+                Start Benchmark Test ({questions.length} Questions)
               </Button>
             </div>
           </CardContent>
@@ -261,7 +313,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
 
   if (isComplete) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-center">Benchmark Test Complete!</CardTitle>
@@ -277,6 +329,19 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
                 Continue to Final Test
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Guard: Don't render if no questions loaded
+  if (!questions.length) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <Card className="shadow-lg">
+          <CardContent className="p-8 text-center">
+            <div className="text-gray-500">No questions available</div>
           </CardContent>
         </Card>
       </div>
