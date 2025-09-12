@@ -18,7 +18,7 @@ import ResultsPhase from "@/components/phases/results-phase"
 
 async function registerParticipant(): Promise<string> {
   const API_BASE = process.env.NODE_ENV === 'production' 
-    ? "https://your-render-backend-url.onrender.com" // Replace with your Render URL
+    ? "https://knapsack-expirement.onrender.com"
     : "http://localhost:8787"
     
   const res = await fetch(`${API_BASE}/api/v1/register`, {
@@ -39,7 +39,7 @@ async function registerParticipantWithProlific(
   sessionId: string
 ): Promise<string> {
   const API_BASE = process.env.NODE_ENV === 'production' 
-    ? "https://your-render-backend-url.onrender.com" // Replace with your Render URL
+    ? "https://knapsack-expirement.onrender.com"
     : "http://localhost:8787"
     
   const res = await fetch(`${API_BASE}/api/v1/register-prolific`, {
