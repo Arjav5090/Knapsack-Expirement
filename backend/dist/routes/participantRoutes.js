@@ -29,9 +29,17 @@ exports.router.post('/api/v1/register', async (req, res) => {
 // REGISTER a Prolific participant
 exports.router.post('/api/v1/register-prolific', async (req, res) => {
     const { prolificPid, studyId, sessionId } = req.body;
+    // Validate required parameters
     if (!prolificPid || !studyId || !sessionId) {
         return res.status(400).json({
             error: 'Missing required Prolific parameters: prolificPid, studyId, sessionId'
+        });
+    }
+    // Validate Prolific ID format (should be a valid UUID-like string)
+    const prolificIdPattern = /^[a-zA-Z0-9]{8,}$/;
+    if (!prolificIdPattern.test(prolificPid)) {
+        return res.status(400).json({
+            error: 'Invalid Prolific participant ID format'
         });
     }
     // Check if this Prolific participant already exists
@@ -39,9 +47,11 @@ exports.router.post('/api/v1/register-prolific', async (req, res) => {
         'prolificData.prolificPid': prolificPid
     });
     if (existingParticipant) {
+        console.log(`[Backend] Returning existing participant for Prolific ID: ${prolificPid}`);
         return res.status(200).json({
             participantId: existingParticipant.participantId,
-            message: 'Returning existing participant'
+            message: 'Returning existing participant',
+            isExisting: true
         });
     }
     // Create new participant with Prolific data
@@ -56,7 +66,12 @@ exports.router.post('/api/v1/register-prolific', async (req, res) => {
         },
         createdAt: new Date(),
     });
-    return res.status(201).json({ participantId: newDoc.participantId });
+    console.log(`[Backend] Created new participant for Prolific ID: ${prolificPid}, Participant ID: ${id}`);
+    return res.status(201).json({
+        participantId: newDoc.participantId,
+        message: 'New participant created',
+        isExisting: false
+    });
 });
 // INGEST phase data (practice, skill, etc)
 exports.router.post('/api/v1/ingest-phase', async (req, res) => {

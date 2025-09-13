@@ -16,22 +16,7 @@ import StrategyPhase from "@/components/phases/strategy-phase"
 import PredictionPhase from "@/components/phases/prediction-phase"
 import ResultsPhase from "@/components/phases/results-phase"
 
-async function registerParticipant(): Promise<string> {
-  const API_BASE = process.env.NODE_ENV === 'production' 
-    ? "https://knapsack-expirement.onrender.com"
-    : "http://localhost:8787"
-    
-  const res = await fetch(`${API_BASE}/api/v1/register`, {
-    method: "POST"
-  })
-
-  if (!res.ok) {
-    throw new Error("Failed to register participant")
-  }
-
-  const data = await res.json()
-  return data.participantId
-}
+// Removed registerParticipant function - only Prolific participants allowed
 
 async function registerParticipantWithProlific(
   prolificPid: string, 
@@ -94,16 +79,7 @@ export default function KnapsackExperiment() {
   const [accessAllowed, setAccessAllowed] = useState(false)
 
   useEffect(() => {
-    // First, check if participant ID already exists in localStorage
-    const existingParticipantId = localStorage.getItem('participantId')
-    if (existingParticipantId) {
-      console.log("[Registration] Found existing participant ID:", existingParticipantId)
-      setParticipantId(existingParticipantId)
-      setAccessAllowed(true)
-      return // Skip registration if we already have an ID
-    }
-
-    // Check for Prolific parameters and restrict access
+    // Check for Prolific parameters - REQUIRED for access
     const urlParams = new URLSearchParams(window.location.search)
     const prolificPid = urlParams.get('PROLIFIC_PID')
     const studyId = urlParams.get('STUDY_ID') 
@@ -116,54 +92,40 @@ export default function KnapsackExperiment() {
       sessionId,
     })
 
-    // Check if all required Prolific parameters are present
-    if (prolificPid && studyId && sessionId) {
-      setAccessAllowed(true)
-      // Register participant with Prolific ID
-      registerParticipantWithProlific(prolificPid, studyId, sessionId)
-        .then((id) => {
-          console.log("[Registration] Setting participant ID:", id)
-          setParticipantId(id)
-          localStorage.setItem('participantId', id)
-          console.log("[Registration] Saved participant ID to localStorage")
-        })
-        .catch((error) => {
-          console.error("[Registration] Failed to register participant:", error)
-          // Fallback: generate local participant ID
-          const fallbackId = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-          console.log("[Registration] Using fallback participant ID:", fallbackId)
-          setParticipantId(fallbackId)
-          localStorage.setItem('participantId', fallbackId)
-        })
-    } else {
-      // For development, allow access without Prolific params if on localhost
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        setAccessAllowed(true)
-        // Fallback registration for development
-        registerParticipant()
-          .then((id) => {
-            console.log("[Registration] Setting participant ID (dev):", id)
-            setParticipantId(id)
-            localStorage.setItem('participantId', id)
-            console.log("[Registration] Saved participant ID to localStorage (dev)")
-          })
-          .catch((error) => {
-            console.error("[Registration] Failed to register participant (dev):", error)
-            // Fallback: generate local participant ID
-            const fallbackId = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-            console.log("[Registration] Using fallback participant ID (dev):", fallbackId)
-            setParticipantId(fallbackId)
-            localStorage.setItem('participantId', fallbackId)
-          })
-      } else {
-        // For production without Prolific params, still allow access but generate local ID
-        console.log("[Registration] No Prolific params, generating local participant ID")
-        const fallbackId = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-        setParticipantId(fallbackId)
-        localStorage.setItem('participantId', fallbackId)
-        setAccessAllowed(true)
-      }
+    // SECURITY: Only allow access with valid Prolific parameters
+    if (!prolificPid || !studyId || !sessionId) {
+      console.error("[Security] Access denied: Missing required Prolific parameters")
+      setAccessAllowed(false)
+      return
     }
+
+    // Check if participant ID already exists in localStorage for this Prolific ID
+    const existingParticipantId = localStorage.getItem('participantId')
+    const storedProlificPid = localStorage.getItem('prolificPid')
+    
+    if (existingParticipantId && storedProlificPid === prolificPid) {
+      console.log("[Registration] Found existing participant ID for Prolific ID:", prolificPid)
+      setParticipantId(existingParticipantId)
+      setAccessAllowed(true)
+      return
+    }
+
+    // Register participant with Prolific ID (backend will check for duplicates)
+    console.log("[Registration] Registering participant with Prolific ID:", prolificPid)
+    registerParticipantWithProlific(prolificPid, studyId, sessionId)
+      .then((id) => {
+        console.log("[Registration] Setting participant ID:", id)
+        setParticipantId(id)
+        localStorage.setItem('participantId', id)
+        localStorage.setItem('prolificPid', prolificPid)
+        console.log("[Registration] Saved participant ID to localStorage")
+        setAccessAllowed(true)
+      })
+      .catch((error) => {
+        console.error("[Registration] Failed to register participant:", error)
+        setAccessAllowed(false)
+        // No fallback - access denied if registration fails
+      })
   }, [])
   
 
