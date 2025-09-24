@@ -18,6 +18,31 @@ import ResultsPhase from "@/components/phases/results-phase"
 
 // Removed registerParticipant function - only Prolific participants allowed
 
+async function checkParticipantExists(prolificPid: string): Promise<{exists: boolean, completed: boolean, participantId?: string}> {
+  const API_BASE = process.env.NODE_ENV === 'production' 
+    ? "https://knapsack-expirement.onrender.com"
+    : "http://localhost:8787"
+    
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/check-participant/${prolificPid}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+
+    if (!res.ok) {
+      return { exists: false, completed: false }
+    }
+
+    const data = await res.json()
+    return data
+  } catch (error) {
+    console.error("[Check Participant] API error:", error)
+    return { exists: false, completed: false }
+  }
+}
+
 async function registerParticipantWithProlific(
   prolificPid: string, 
   studyId: string, 
@@ -40,6 +65,12 @@ async function registerParticipantWithProlific(
   })
 
   if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}))
+    
+    if (res.status === 403 && errorData.completed) {
+      throw new Error("Participant has already completed the study")
+    }
+    
     throw new Error("Failed to register Prolific participant")
   }
 
@@ -77,6 +108,7 @@ export default function KnapsackExperiment() {
     sessionId: null,
   })
   const [accessAllowed, setAccessAllowed] = useState(false)
+  const [showCompletedMessage, setShowCompletedMessage] = useState(false)
 
   useEffect(() => {
     // Check for Prolific parameters - REQUIRED for access
@@ -84,7 +116,7 @@ export default function KnapsackExperiment() {
     const prolificPid = urlParams.get('PROLIFIC_PID')
     const studyId = urlParams.get('STUDY_ID') 
     const sessionId = urlParams.get('SESSION_ID')
-
+ 
     // Set Prolific parameters
     setProlificParams({
       prolificPid,
@@ -99,31 +131,60 @@ export default function KnapsackExperiment() {
       return
     }
 
-    // Check if participant ID already exists in localStorage for this Prolific ID
-    const existingParticipantId = localStorage.getItem('participantId')
-    const storedProlificPid = localStorage.getItem('prolificPid')
-    
-    if (existingParticipantId && storedProlificPid === prolificPid) {
-      console.log("[Registration] Found existing participant ID for Prolific ID:", prolificPid)
-      setParticipantId(existingParticipantId)
-      setAccessAllowed(true)
-      return
-    }
+    // Check if participant has already completed the study
+    console.log("[Registration] Checking if participant already exists:", prolificPid)
+    checkParticipantExists(prolificPid!)
+      .then((participantStatus) => {
+        if (participantStatus.exists && participantStatus.completed) {
+          console.log("[Registration] Participant has already completed the study")
+          setAccessAllowed(false)
+          setShowCompletedMessage(true)
+          return
+        }
 
-    // Register participant with Prolific ID (backend will check for duplicates)
-    console.log("[Registration] Registering participant with Prolific ID:", prolificPid)
-    registerParticipantWithProlific(prolificPid, studyId, sessionId)
+        if (participantStatus.exists && !participantStatus.completed && participantStatus.participantId) {
+          console.log("[Registration] Found existing participant, allowing continuation")
+          setParticipantId(participantStatus.participantId)
+          localStorage.setItem('participantId', participantStatus.participantId)
+          localStorage.setItem('prolificPid', prolificPid!)
+          setAccessAllowed(true)
+          return
+        }
+
+        // Check local storage as fallback
+        const existingParticipantId = localStorage.getItem('participantId')
+        const storedProlificPid = localStorage.getItem('prolificPid')
+        
+        if (existingParticipantId && storedProlificPid === prolificPid) {
+          console.log("[Registration] Found existing participant ID in localStorage:", prolificPid)
+          setParticipantId(existingParticipantId)
+          setAccessAllowed(true)
+          return
+        }
+
+        // Register new participant
+        console.log("[Registration] Registering new participant:", prolificPid)
+        return registerParticipantWithProlific(prolificPid!, studyId!, sessionId!)
+      })
       .then((id) => {
-        console.log("[Registration] Setting participant ID:", id)
-        setParticipantId(id)
-        localStorage.setItem('participantId', id)
-        localStorage.setItem('prolificPid', prolificPid)
-        console.log("[Registration] Saved participant ID to localStorage")
-        setAccessAllowed(true)
+        if (id) {
+          console.log("[Registration] Setting participant ID:", id)
+          setParticipantId(id)
+          localStorage.setItem('participantId', id)
+          localStorage.setItem('prolificPid', prolificPid!)
+          console.log("[Registration] Saved participant ID to localStorage")
+          setAccessAllowed(true)
+        }
       })
       .catch((error) => {
         console.error("[Registration] Failed to register participant:", error)
-        setAccessAllowed(false)
+        
+        // Check if error is due to participant already completing the study
+        if (error.message.includes('already completed')) {
+          setShowCompletedMessage(true)
+        } else {
+          setAccessAllowed(false)
+        }
         // No fallback - access denied if registration fails
       })
   }, [])
@@ -142,8 +203,31 @@ export default function KnapsackExperiment() {
     }
   }
 
-  const completeProlificStudy = () => {
-    if (prolificParams.prolificPid) {
+  const completeProlificStudy = async () => {
+    if (prolificParams.prolificPid && participantId) {
+      // Mark participant as completed in the backend
+      try {
+        const API_BASE = process.env.NODE_ENV === 'production' 
+          ? "https://knapsack-expirement.onrender.com"
+          : "http://localhost:8787"
+          
+        await fetch(`${API_BASE}/api/v1/complete-participant`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            participantId,
+            prolificPid: prolificParams.prolificPid,
+            completedAt: new Date().toISOString()
+          })
+        })
+        
+        console.log("[Completion] Marked participant as completed")
+      } catch (error) {
+        console.error("[Completion] Failed to mark participant as completed:", error)
+      }
+      
       // Redirect to Prolific completion page with actual completion code
       const completionUrl = `https://app.prolific.co/submissions/complete?cc=KNAPSACK2024` // Use your actual completion code from Prolific dashboard
       window.location.href = completionUrl
@@ -184,6 +268,35 @@ export default function KnapsackExperiment() {
       default:
         return <IntroPhase {...phaseProps} />
     }
+  }
+
+  // Show completed message if participant already finished
+  if (showCompletedMessage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="max-w-2xl mx-auto p-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Study Already Completed</h1>
+            <p className="text-lg text-gray-600 mb-6">
+              You have already completed this study. Each participant can only take the study once.
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-blue-800 text-sm font-medium">
+                ✓ Your previous submission has been recorded and you should have received completion confirmation.
+              </p>
+            </div>
+            <p className="text-sm text-gray-500">
+              Thank you for your participation! If you have any questions, please contact the researcher.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // Access restriction check

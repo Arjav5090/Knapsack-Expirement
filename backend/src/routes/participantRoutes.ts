@@ -27,6 +27,80 @@ router.post('/api/v1/register', async (req, res) => {
   return res.status(201).json({ participantId: newDoc.participantId })
 })
 
+// CHECK if participant exists and completion status
+router.get('/api/v1/check-participant/:prolificPid', async (req, res) => {
+  const { prolificPid } = req.params
+  
+  if (!prolificPid) {
+    return res.status(400).json({ error: 'Missing prolificPid parameter' })
+  }
+
+  try {
+    const participant = await ParticipantModel.findOne({ 
+      'prolificData.prolificPid': prolificPid 
+    })
+    
+    if (!participant) {
+      return res.status(200).json({ 
+        exists: false, 
+        completed: false 
+      })
+    }
+    
+    const isCompleted = !!participant.prolificData?.completedAt
+    
+    return res.status(200).json({ 
+      exists: true, 
+      completed: isCompleted,
+      participantId: participant.participantId
+    })
+    
+  } catch (err) {
+    console.error('[CHECK PARTICIPANT ERROR]', err)
+    return res.status(500).json({ error: 'Failed to check participant' })
+  }
+})
+
+// MARK participant as completed
+router.post('/api/v1/complete-participant', async (req, res) => {
+  const { participantId, prolificPid, completedAt } = req.body
+  
+  if (!participantId || !prolificPid) {
+    return res.status(400).json({ 
+      error: 'Missing required fields: participantId, prolificPid' 
+    })
+  }
+
+  try {
+    const updated = await ParticipantModel.findOneAndUpdate(
+      { 
+        participantId,
+        'prolificData.prolificPid': prolificPid 
+      },
+      { 
+        $set: { 
+          'prolificData.completedAt': completedAt || new Date().toISOString()
+        } 
+      },
+      { new: true }
+    )
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'Participant not found' })
+    }
+    
+    console.log(`[Backend] Marked participant as completed: ${prolificPid}`)
+    return res.status(200).json({ 
+      success: true, 
+      completedAt: updated.prolificData?.completedAt 
+    })
+    
+  } catch (err) {
+    console.error('[COMPLETE PARTICIPANT ERROR]', err)
+    return res.status(500).json({ error: 'Failed to mark participant as completed' })
+  }
+})
+
 // REGISTER a Prolific participant
 router.post('/api/v1/register-prolific', async (req, res) => {
   const { prolificPid, studyId, sessionId } = req.body
@@ -52,6 +126,15 @@ router.post('/api/v1/register-prolific', async (req, res) => {
   })
   
   if (existingParticipant) {
+    // Check if participant has already completed the study
+    if (existingParticipant.prolificData?.completedAt) {
+      console.log(`[Backend] Participant already completed study: ${prolificPid}`)
+      return res.status(403).json({ 
+        error: 'Participant has already completed the study',
+        completed: true
+      })
+    }
+    
     console.log(`[Backend] Returning existing participant for Prolific ID: ${prolificPid}`)
     return res.status(200).json({ 
       participantId: existingParticipant.participantId,

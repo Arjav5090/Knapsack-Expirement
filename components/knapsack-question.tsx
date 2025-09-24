@@ -191,14 +191,6 @@ export default function KnapsackQuestion({
       <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 border border-gray-200 shadow-lg">
         {/* Header Section */}
         <div className="text-center mb-6">
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mb-3 shadow-lg"
-          >
-            <Package className="h-8 w-8 text-white" />
-          </motion.div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">Knapsack Problem</h3>
           <div className="inline-flex items-center space-x-2 bg-white rounded-xl px-4 py-2 shadow-md border">
             <span className="text-sm font-medium text-gray-600">Capacity:</span>
             <span className="text-2xl font-bold text-gray-900">{question.capacity}</span>

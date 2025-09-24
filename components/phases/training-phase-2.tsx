@@ -304,42 +304,40 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
               <h3 className="text-2xl font-semibold text-orange-800 mb-6">Test 1</h3>
 
               <div className="space-y-6 text-orange-700">
-                <p className="text-lg">
+                <p className="text-xl">
                   In this section, you will complete <strong>10 questions</strong> in Test 1.
-                  Once you start, you will have exactly <strong>15 minutes total</strong> to
-                  complete all questions.
+                  Once you start, you will have <strong>90 seconds on each question</strong>.
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-white p-6 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4 flex items-center">
+                    <h4 className="text-xl font-semibold mb-4 flex items-center">
                       <Clock className="h-5 w-5 mr-2" />
                       Rules
                     </h4>
-                    <ul className="text-base space-y-2">
-                      <li>• You have 15 minutes total for all 10 questions.</li>
-                      <li>• Timer counts down continuously.</li>
-                      <li>• You cannot come back to previous questions after seeing later questions, so answer questions you wish before moving on.</li>
-                      <li>• Guessing is penalized! Please only answer questions you wish to answer.</li>
+                    <ul className="text-lg space-y-3">
+                      <li>• You have 90 seconds to complete each question.</li>
+                      <li>• <strong>You cannot come back to previous questions after seeing later questions</strong>, so answer questions you wish before moving on.</li>
+                      <li>• <strong>Guessing is penalized!</strong> Please only answer questions you wish to answer.</li>
                       <li>• Only questions confirmed are considered answered, unconfirmed questions are considered unanswered!</li>
                       <li>• Auto-submit when time runs out.</li>
                     </ul>
                   </div>
 
                   <div className="bg-white p-6 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4 flex items-center">
+                    <h4 className="text-xl font-semibold mb-4 flex items-center">
                       <Trophy className="h-5 w-5 mr-2" />
                       Scoring
                     </h4>
-                    <ul className="text-base space-y-2">
+                    <ul className="text-lg space-y-3">
                       <li>
-                        • <strong>Correct answers</strong>: Contribute to your score
+                        • <strong>Correct answers</strong>: You are rewarded 2 <strong>probability points</strong>
                       </li>
                       <li>
-                        • <strong>Incorrect answers</strong>: Do not contribute to your score
+                        • <strong>Incorrect answers</strong>: You are NOT rewarded <strong>probability points</strong>
                       </li>
                       <li>
-                        • <strong>Unanswered questions</strong>: Considered neutral
+                        • <strong>Unanswered questions</strong>: You are rewarded 1 <strong>probability point</strong>
                       </li>
                     </ul>
                   </div>
@@ -348,13 +346,9 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
                 <div className="bg-red-100 border border-red-300 rounded-lg p-6">
                   <div className="flex items-center mb-4">
                     <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
-                    <h4 className="text-lg font-semibold text-red-800">Important Reminders</h4>
+                    <h4 className="text-xl font-semibold text-red-800">Important Reminders</h4>
                   </div>
-                  <ul className="text-base text-red-700 space-y-2">
-                    <li>
-                      • <strong>MUST confirm answers you wish to submit!</strong> Unconfirmed = unanswered.
-                    </li>
-                    <li>• You ARE expected to finish before the timing constraint.</li>
+                  <ul className="text-lg text-red-700 space-y-3">
                     <li>• If you attempted a question but do not wish to answer it, no need to deselect the balls, just leave the question unconfirmed.</li>
                     <li>• Focus on accuracy over speed.</li>
                   </ul>
@@ -413,19 +407,19 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
 
                   <div className="bg-white p-4 rounded-lg shadow-sm border-2 border-blue-500">
                     <div className="text-3xl font-bold text-blue-600">{performanceScore}</div>
-                    <div className="text-sm text-gray-600">Performance Score</div>
+                    <div className="text-sm text-gray-600">Probability Points Earned</div>
                   </div>
                 </div>
 
                 <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 mb-6">
                   <p className="text-blue-800 font-medium">
-                    You achieved a performance score of <strong>{performanceScore}</strong>!
+                    You earned <strong>{performanceScore}</strong> probability points!
                   </p>
                   <p className="text-blue-700 text-sm mt-1">Great job completing Test 1!</p>
                 </div>
 
                 <Button onClick={onNext} size="lg">
-                  Continue to Benchmark Test
+                  Continue to Test 2
                 </Button>
               </div>
             </div>

@@ -58,11 +58,11 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
         
         console.log("[Benchmark] Loading dynamic questions for participant:", participantId)
         
-        // Load benchmark questions (15 questions, mixed difficulty)
+        // Load benchmark questions (30 questions, mixed difficulty)
         const generatedQuestions = await getOrGenerateQuestions({
           participantId,
           phase: 'benchmark',
-          count: 15
+          count: 30
         })
         
         console.log("[Benchmark] Loaded questions:", generatedQuestions)
@@ -75,7 +75,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
         // Fallback to local question generation
         console.log("[Benchmark] Falling back to local question generation")
         try {
-          const localQuestions = createPhaseQuestions('benchmark', 15)
+          const localQuestions = createPhaseQuestions('benchmark', 30)
           console.log("[Benchmark] Generated local questions:", localQuestions)
           setQuestions(localQuestions)
           setQuestionLoadError(null) // Clear error since we have fallback questions
@@ -215,13 +215,13 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl mb-4">
                 <Zap className="h-8 w-8 text-white animate-pulse" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Generating Benchmark Questions</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Generating Test 2 Questions</h2>
               <p className="text-gray-600 max-w-md mx-auto">
                 Creating a sophisticated test with mixed difficulty levels using academic algorithms...
               </p>
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
-                <span>Generating 15 questions with controlled difficulty progression</span>
+                <span>Generating 30 questions with controlled difficulty progression</span>
               </div>
               {questionLoadError && (
                 <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -244,17 +244,17 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
           <CardHeader>
             <CardTitle className="flex items-center">
               <BarChart3 className="h-6 w-6 mr-2 text-purple-600" />
-              Benchmark Test - Instructions
+              Test 2 - Instructions
             </CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-8">
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-8">
-              <h3 className="text-2xl font-semibold text-purple-800 mb-6">Benchmark Assessment</h3>
+              <h3 className="text-2xl font-semibold text-purple-800 mb-6">Test 2</h3>
 
               <div className="space-y-6 text-purple-700">
-                <p className="text-lg">
-                  You will complete a test with <strong>{questions.length} dynamically generated knapsack questions</strong>. You
+                <p className="text-xl">
+                  You will complete a test with <strong>30 dynamically generated knapsack questions</strong>. You
                   have exactly <strong>20 minutes</strong> to complete the test.
                 </p>
 
@@ -268,33 +268,33 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-white p-6 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4">🧭 Navigation</h4>
-                    <ul className="text-base space-y-2">
-                      <li>• You can navigate to any question in the test at any point by clicking the question menu on the left, or by clicking the arrow buttons on every question.</li>
+                    <h4 className="text-xl font-semibold mb-4">🧭 Navigation</h4>
+                    <ul className="text-lg space-y-3">
+                      <li>• <strong>You can navigate to any question in the test at any point</strong> by clicking the question menu on the left, or by clicking the arrow buttons on every question.</li>
                       <li>• You can "highlight" questions by clicking the star icon on the menu.</li>
-                      <li>• As before, please remember to confirm questions you wish to answer. You cannot change your answer after confirming, but you can still view them by moving to the question.</li>
+                      <li>• As before, <strong>please remember to confirm questions you wish to answer</strong>. You cannot change your answer after confirming, but you can still view them by moving to the question.</li>
                     </ul>
                   </div>
 
                   <div className="bg-white p-6 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4">🎯 Assessment</h4>
-                    <ul className="text-base space-y-2">
+                    <h4 className="text-xl font-semibold mb-4">🎯 Assessment</h4>
+                    <ul className="text-lg space-y-3">
                       <li>
-                        • <strong>Correct answers</strong>: Contribute to your performance assessment
+                        • <strong>Correct answers</strong>: You are rewarded 2 <strong>probability points</strong>
                       </li>
                       <li>
-                        • <strong>Incorrect answers</strong>: Do not contribute to your assessment
+                        • <strong>Incorrect answers</strong>: You are NOT rewarded <strong>probability points</strong>
                       </li>
                       <li>
-                        • <strong>Unanswered questions</strong>: Considered neutral
+                        • <strong>Unanswered questions</strong>: You are rewarded 1 <strong>probability point</strong>
                       </li>
-                      <li>• Must confirm answers to count</li>
+                      <li>• <strong>Must confirm answers to count</strong></li>
                     </ul>
                   </div>
                 </div>
 
                 <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-6">
-                  <p className="text-lg text-yellow-800 font-medium">
+                  <p className="text-xl text-yellow-800 font-medium">
                     💡 <strong>Strategy Tip:</strong> The test is long, and you are NOT expected to finish every question. Plan your time
                     accordingly and focus on questions you can solve accurately.
                   </p>
@@ -310,7 +310,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
                 disabled={questions.length === 0}
               >
                 <Clock className="h-5 w-5 mr-2" />
-                Start Benchmark Test ({questions.length} Questions)
+                Start Test 2 ({questions.length} Questions)
               </Button>
             </div>
           </CardContent>
@@ -320,27 +320,9 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   }
 
   if (isComplete) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-center">Benchmark Test Complete!</CardTitle>
-          </CardHeader>
-
-          <CardContent className="text-center space-y-6">
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-8 rounded-xl">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Great job completing the benchmark test!</h3>
-              <p className="text-gray-700 mb-6">
-                Your performance has been recorded and will contribute to your final results.
-              </p>
-              <Button onClick={completeTest} size="lg" className="bg-blue-600 hover:bg-blue-700">
-                Continue to Final Test
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    // Automatically proceed to next test without showing performance
+    completeTest()
+    return null
   }
 
   // Guard: Don't render if no questions loaded
@@ -366,9 +348,9 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
       {/* Top Section with Finish Button */}
       <div className="mb-6 flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-bold text-gray-900">Benchmark Test</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Test 2</h2>
           <div className={`px-3 py-2 rounded-lg text-lg font-mono font-bold ${
-            timeLeft <= 300 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+            timeLeft <= 60 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
           }`}>
             {formatTime(timeLeft)}
           </div>
