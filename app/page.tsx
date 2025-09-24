@@ -116,7 +116,7 @@ export default function KnapsackExperiment() {
     const prolificPid = urlParams.get('PROLIFIC_PID')
     const studyId = urlParams.get('STUDY_ID') 
     const sessionId = urlParams.get('SESSION_ID')
- 
+    
     // Set Prolific parameters
     setProlificParams({
       prolificPid,

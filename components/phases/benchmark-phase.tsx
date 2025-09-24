@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,7 +10,6 @@ import KnapsackQuestion from "@/components/knapsack-question"
 import { getOrGenerateQuestions } from "@/lib/api"
 import { createPhaseQuestions } from "@/lib/question-utils"
 import type { Question } from "@/lib/knapsack-generator"
-import { useMemo } from "react"
 
 interface BenchmarkPhaseProps {
   onNext: () => void
@@ -21,6 +20,9 @@ interface BenchmarkPhaseProps {
 // Questions will be loaded dynamically from the backend/generator
 
 export default function BenchmarkPhase({ onNext, updateParticipantData }: BenchmarkPhaseProps) {
+  // Add error logging
+  console.log("[BenchmarkPhase] Component initializing")
+  
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<{
@@ -35,8 +37,10 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   const [questionLoadError, setQuestionLoadError] = useState<string | null>(null)
   const [participantId, setParticipantId] = useState<string | null>(null)
 
-  // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
-  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "https://knapsack-expirement.onrender.com", [])
+  // API base - static for client component
+  const API_BASE = process.env.NODE_ENV === 'production' 
+    ? "https://knapsack-expirement.onrender.com"
+    : "http://localhost:8787"
 
   // Load participant ID
   useEffect(() => {
@@ -110,23 +114,8 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     }
   }, [showInstructions, timeLeft, isComplete])
 
-  const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
-    const questionId = questions[currentQuestion].id
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        selected: selectedBalls,
-        confirmed: true,
-        correct: isCorrect,
-      },
-    }))
-  }
-
-  const handleTimeUp = () => {
-    completeTest()
-  }
-
-  const completeTest = async () => {
+  // Define completeTest before useEffect that uses it
+  const completeTest = useCallback(async () => {
     setIsComplete(true)
   
     const correctAnswers = Object.values(answers).filter((a) => a.confirmed && a.correct).length
@@ -180,6 +169,33 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
       })
       onNext()
     }
+  }, [answers, participantId, questions.length, timeLeft, API_BASE, updateParticipantData, onNext])
+
+  // Handle completion with useEffect (must be at component level, not conditional)
+  useEffect(() => {
+    if (isComplete) {
+      const timer = setTimeout(() => {
+        completeTest()
+      }, 100) // Small delay to prevent hydration mismatch
+      
+      return () => clearTimeout(timer)
+    }
+  }, [isComplete, completeTest])
+
+  const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
+    const questionId = questions[currentQuestion].id
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: {
+        selected: selectedBalls,
+        confirmed: true,
+        correct: isCorrect,
+      },
+    }))
+  }
+
+  const handleTimeUp = () => {
+    completeTest()
   }
   
 
@@ -319,16 +335,8 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     )
   }
 
+
   if (isComplete) {
-    // Use useEffect to prevent hydration issues
-    React.useEffect(() => {
-      const timer = setTimeout(() => {
-        completeTest()
-      }, 100) // Small delay to prevent hydration mismatch
-      
-      return () => clearTimeout(timer)
-    }, [])
-    
     return (
       <div className="max-w-7xl mx-auto p-6">
         <Card className="shadow-lg">
