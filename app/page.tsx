@@ -151,20 +151,15 @@ export default function KnapsackExperiment() {
           return
         }
 
-        // Check local storage as fallback
-        const existingParticipantId = localStorage.getItem('participantId')
-        const storedProlificPid = localStorage.getItem('prolificPid')
-        
-        if (existingParticipantId && storedProlificPid === prolificPid) {
-          console.log("[Registration] Found existing participant ID in localStorage:", prolificPid)
-          setParticipantId(existingParticipantId)
-          setAccessAllowed(true)
-          return
+        // If participant doesn't exist in backend, register new participant
+        if (!participantStatus.exists) {
+          console.log("[Registration] Registering new participant:", prolificPid)
+          return registerParticipantWithProlific(prolificPid!, studyId!, sessionId!)
         }
 
-        // Register new participant
-        console.log("[Registration] Registering new participant:", prolificPid)
-        return registerParticipantWithProlific(prolificPid!, studyId!, sessionId!)
+        // If we reach here, something unexpected happened - deny access
+        console.error("[Registration] Unexpected participant status:", participantStatus)
+        setAccessAllowed(false)
       })
       .then((id) => {
         if (id) {
@@ -183,9 +178,19 @@ export default function KnapsackExperiment() {
         if (error.message.includes('already completed')) {
           setShowCompletedMessage(true)
         } else {
-          setAccessAllowed(false)
+          // If backend is unavailable, use localStorage as fallback
+          console.log("[Registration] Backend unavailable, checking localStorage fallback")
+          const existingParticipantId = localStorage.getItem('participantId')
+          const storedProlificPid = localStorage.getItem('prolificPid')
+          
+          if (existingParticipantId && storedProlificPid === prolificPid) {
+            console.log("[Registration] Using localStorage fallback for:", prolificPid)
+            setParticipantId(existingParticipantId)
+            setAccessAllowed(true)
+          } else {
+            setAccessAllowed(false)
+          }
         }
-        // No fallback - access denied if registration fails
       })
   }, [])
   
@@ -227,6 +232,11 @@ export default function KnapsackExperiment() {
       } catch (error) {
         console.error("[Completion] Failed to mark participant as completed:", error)
       }
+      
+      // Clear localStorage to prevent repeat access
+      localStorage.removeItem('participantId')
+      localStorage.removeItem('prolificPid')
+      console.log("[Completion] Cleared localStorage to prevent repeat access")
       
       // Redirect to Prolific completion page with actual completion code
       const completionUrl = `https://app.prolific.co/submissions/complete?cc=KNAPSACK2024` // Use your actual completion code from Prolific dashboard

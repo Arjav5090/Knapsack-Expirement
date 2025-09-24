@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -320,9 +320,27 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   }
 
   if (isComplete) {
-    // Automatically proceed to next test without showing performance
-    completeTest()
-    return null
+    // Use useEffect to prevent hydration issues
+    React.useEffect(() => {
+      const timer = setTimeout(() => {
+        completeTest()
+      }, 100) // Small delay to prevent hydration mismatch
+      
+      return () => clearTimeout(timer)
+    }, [])
+    
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <Card className="shadow-lg">
+          <CardContent className="p-8 text-center">
+            <div className="text-lg font-medium text-gray-700">Completing Test 2...</div>
+            <div className="mt-4">
+              <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-r-transparent"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   // Guard: Don't render if no questions loaded
