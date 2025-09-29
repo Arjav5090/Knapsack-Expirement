@@ -109,6 +109,7 @@ export default function KnapsackExperiment() {
   })
   const [accessAllowed, setAccessAllowed] = useState(false)
   const [showCompletedMessage, setShowCompletedMessage] = useState(false)
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true)
 
   useEffect(() => {
     // Check for Prolific parameters - REQUIRED for access
@@ -128,6 +129,7 @@ export default function KnapsackExperiment() {
     if (!prolificPid || !studyId || !sessionId) {
       console.error("[Security] Access denied: Missing required Prolific parameters")
       setAccessAllowed(false)
+      setIsCheckingAccess(false)
       return
     }
 
@@ -139,6 +141,7 @@ export default function KnapsackExperiment() {
           console.log("[Registration] Participant has already completed the study")
           setAccessAllowed(false)
           setShowCompletedMessage(true)
+          setIsCheckingAccess(false)
           return
         }
 
@@ -148,6 +151,7 @@ export default function KnapsackExperiment() {
           localStorage.setItem('participantId', participantStatus.participantId)
           localStorage.setItem('prolificPid', prolificPid!)
           setAccessAllowed(true)
+          setIsCheckingAccess(false)
           return
         }
 
@@ -160,6 +164,7 @@ export default function KnapsackExperiment() {
         // If we reach here, something unexpected happened - deny access
         console.error("[Registration] Unexpected participant status:", participantStatus)
         setAccessAllowed(false)
+        setIsCheckingAccess(false)
       })
       .then((id) => {
         if (id) {
@@ -169,6 +174,7 @@ export default function KnapsackExperiment() {
           localStorage.setItem('prolificPid', prolificPid!)
           console.log("[Registration] Saved participant ID to localStorage")
           setAccessAllowed(true)
+          setIsCheckingAccess(false)
         }
       })
       .catch((error) => {
@@ -179,9 +185,11 @@ export default function KnapsackExperiment() {
           console.log("[Registration] Participant has already completed the study")
           setShowCompletedMessage(true)
           setAccessAllowed(false)
+          setIsCheckingAccess(false)
         } else {
           console.error("[Registration] Backend unavailable - denying access for security")
           setAccessAllowed(false)
+          setIsCheckingAccess(false)
         }
       })
   }, [])
@@ -270,6 +278,25 @@ export default function KnapsackExperiment() {
       default:
         return <IntroPhase {...phaseProps} />
     }
+  }
+
+  // Show loading state while checking access
+  if (isCheckingAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto p-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-r-transparent"></div>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Verifying Access</h1>
+            <p className="text-gray-600">
+              Checking your Prolific credentials and study status...
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // Show completed message if participant already finished

@@ -14,7 +14,7 @@ interface ResultsPhaseProps {
   updateParticipantData: (data: any) => void
 }
 
-export default function ResultsPhase({ participantData }: ResultsPhaseProps) {
+export default function ResultsPhase({ onNext, participantData }: ResultsPhaseProps) {
 
 
   // Calculate total performance
@@ -218,6 +218,17 @@ export default function ResultsPhase({ participantData }: ResultsPhaseProps) {
                 <li>• Advanced our knowledge of decision-making</li>
               </ul>
             </div>
+          </div>
+
+          <div className="text-center pt-6">
+            <Button 
+              onClick={onNext}
+              size="lg"
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg transition-all duration-200"
+            >
+              <Gift className="h-5 w-5 mr-2" />
+              Complete Study & Return to Prolific
+            </Button>
           </div>
 
           <div className="text-center pt-4">
