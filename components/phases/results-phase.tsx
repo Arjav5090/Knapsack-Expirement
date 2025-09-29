@@ -15,7 +15,46 @@ interface ResultsPhaseProps {
 }
 
 export default function ResultsPhase({ onNext, participantData }: ResultsPhaseProps) {
+  const [hasMarkedComplete, setHasMarkedComplete] = useState(false)
 
+  // Auto-complete the study when Results phase loads
+  useEffect(() => {
+    if (!hasMarkedComplete) {
+      setHasMarkedComplete(true)
+      
+      // Mark participant as completed in the backend
+      const markStudyComplete = async () => {
+        try {
+          const participantId = localStorage.getItem('participantId')
+          const prolificPid = localStorage.getItem('prolificPid')
+          
+          if (participantId && prolificPid) {
+            const API_BASE = process.env.NODE_ENV === 'production' 
+              ? "https://knapsack-expirement.onrender.com"
+              : "http://localhost:8787"
+              
+            await fetch(`${API_BASE}/api/v1/complete-participant`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                participantId,
+                prolificPid,
+                completedAt: new Date().toISOString()
+              })
+            })
+            
+            console.log("[Results] Marked participant as completed")
+          }
+        } catch (error) {
+          console.error("[Results] Failed to mark participant as completed:", error)
+        }
+      }
+      
+      markStudyComplete()
+    }
+  }, [hasMarkedComplete])
 
   // Calculate total performance
   const training1 = participantData.training1 || { correctAnswers: 0, totalQuestions: 6, accuracy: 0 }
@@ -222,7 +261,15 @@ export default function ResultsPhase({ onNext, participantData }: ResultsPhasePr
 
           <div className="text-center pt-6">
             <Button 
-              onClick={onNext}
+              onClick={() => {
+                // Clear localStorage to prevent re-access
+                localStorage.removeItem('participantId')
+                localStorage.removeItem('prolificPid')
+                
+                // Redirect to Prolific completion page
+                const completionUrl = `https://app.prolific.co/submissions/complete?cc=KNAPSACK2024`
+                window.location.href = completionUrl
+              }}
               size="lg"
               className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg transition-all duration-200"
             >

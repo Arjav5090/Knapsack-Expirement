@@ -47,12 +47,28 @@ router.get('/api/v1/check-participant/:prolificPid', async (req, res) => {
       })
     }
     
-    const isCompleted = !!participant.prolificData?.completedAt
+    // Check if participant has completed all required phases
+    const requiredPhases = ['practice', 'benchmark', 'strategy', 'final'] as const
+    const completedPhases = requiredPhases.filter(phase => 
+      (participant.tests as any)?.[phase]?.completed === true
+    )
+    
+    const isFullyCompleted = completedPhases.length === requiredPhases.length
+    
+    // Also check for explicit completion flag
+    const isMarkedCompleted = !!participant.prolificData?.completedAt
+    
+    // Participant is considered completed if they've finished all phases OR been explicitly marked
+    const isCompleted = isFullyCompleted || isMarkedCompleted
     
     return res.status(200).json({ 
       exists: true, 
       completed: isCompleted,
-      participantId: participant.participantId
+      participantId: participant.participantId,
+      completedPhases: completedPhases.length,
+      totalPhases: requiredPhases.length,
+      allPhasesComplete: isFullyCompleted,
+      markedComplete: isMarkedCompleted
     })
     
   } catch (err) {

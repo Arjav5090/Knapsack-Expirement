@@ -203,8 +203,8 @@ export default function KnapsackExperiment() {
     if (nextIndex < phases.length) {
       setCurrentPhase(phases[nextIndex].id)
     } else {
-      // Experiment completed - redirect to Prolific
-      completeProlificStudy()
+      // This should not happen since Results is the final phase
+      console.log("[App] All phases completed - Results phase should handle completion")
     }
   }
 
@@ -310,13 +310,13 @@ export default function KnapsackExperiment() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Study Already Completed</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Response Already Submitted</h1>
             <p className="text-lg text-gray-600 mb-6">
-              You have already completed this study. Each participant can only take the study once.
+              You have already submitted your response for this study. You are not allowed to submit again.
             </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-blue-800 text-sm font-medium">
-                ✓ Your previous submission has been recorded and you should have received completion confirmation.
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-red-800 text-sm font-medium">
+                🚫 Multiple submissions are not permitted. Your original response has been recorded.
               </p>
             </div>
             <p className="text-sm text-gray-500">
