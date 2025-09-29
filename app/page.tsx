@@ -176,20 +176,12 @@ export default function KnapsackExperiment() {
         
         // Check if error is due to participant already completing the study
         if (error.message.includes('already completed')) {
+          console.log("[Registration] Participant has already completed the study")
           setShowCompletedMessage(true)
+          setAccessAllowed(false)
         } else {
-          // If backend is unavailable, use localStorage as fallback
-          console.log("[Registration] Backend unavailable, checking localStorage fallback")
-          const existingParticipantId = localStorage.getItem('participantId')
-          const storedProlificPid = localStorage.getItem('prolificPid')
-          
-          if (existingParticipantId && storedProlificPid === prolificPid) {
-            console.log("[Registration] Using localStorage fallback for:", prolificPid)
-            setParticipantId(existingParticipantId)
-            setAccessAllowed(true)
-          } else {
-            setAccessAllowed(false)
-          }
+          console.error("[Registration] Backend unavailable - denying access for security")
+          setAccessAllowed(false)
         }
       })
   }, [])
