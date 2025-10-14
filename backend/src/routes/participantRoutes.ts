@@ -539,7 +539,12 @@ router.get('/api/v1/admin/analytics', adminAuth, async (req, res) => {
                     totalQuestions: p.tests.benchmark.totalQuestions
                   } : null,
                   strategy: p.tests?.strategy ? {
-                    completed: p.tests.strategy.completed
+                    completed: p.tests.strategy.completed,
+                    answers: p.tests.strategy.answers,
+                    questionsAnswered: (p.tests.strategy as any).questionsAnswered,
+                    totalQuestions: (p.tests.strategy as any).totalQuestions,
+                    timeUsed: (p.tests.strategy as any).timeUsed,
+                    questionTimes: (p.tests.strategy as any).questionTimes
                   } : null,
                   final: p.tests?.final ? {
                     completed: p.tests.final.completed,

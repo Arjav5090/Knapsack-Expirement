@@ -283,53 +283,8 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Clock className="h-8 w-8 text-purple-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Avg Study Time</p>
-                      <p className="text-2xl font-bold text-gray-900">{formatTime(analytics.overview.avgStudyTime)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <BarChart3 className="h-8 w-8 text-orange-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Total Study Time</p>
-                      <p className="text-2xl font-bold text-gray-900">{formatTime(analytics.overview.totalStudyTime)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
 
-            {/* Section Time Analytics */}
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Average Time Per Section</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(analytics.timeAnalytics.avgTimePerSection).map(([section, time]) => (
-                    <div key={section} className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <Badge variant="outline" className="mr-3">{section}</Badge>
-                        <span className="text-sm text-gray-600">{formatTime(time)}</span>
-                      </div>
-                      <Progress 
-                        value={(time / Math.max(...Object.values(analytics.timeAnalytics.avgTimePerSection))) * 100} 
-                        className="w-32"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Participant Details */}
             <Card>
@@ -431,44 +386,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                       </div>
                     </div>
 
-                    {/* Time Analysis */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-3">Time Analysis</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card>
-                          <CardContent className="p-4">
-                            <div className="text-center">
-                              <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                              <p className="text-sm text-gray-600">Total Time</p>
-                              <p className="text-xl font-bold">{formatTime(participantDetails.detailedTimeAnalysis?.totalTimeSpent || 0)}</p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4">
-                            <div className="text-center">
-                              <BarChart3 className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                              <p className="text-sm text-gray-600">Session Duration</p>
-                              <p className="text-xl font-bold">
-                                {participantDetails.detailedTimeAnalysis?.sessionDuration 
-                                  ? formatTime(participantDetails.detailedTimeAnalysis.sessionDuration)
-                                  : 'N/A'
-                                }
-                              </p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        <Card>
-                          <CardContent className="p-4">
-                            <div className="text-center">
-                              <TrendingUp className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                              <p className="text-sm text-gray-600">Sections Completed</p>
-                              <p className="text-xl font-bold">{participantDetails.detailedTimeAnalysis?.sectionBreakdown?.length || 0}</p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </div>
 
                     {/* Test Results */}
                     <div>
@@ -503,7 +420,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                 </div>
                                 
                                 {/* Individual Answers */}
-                                {testData.answers && testData.answers.length > 0 && (
+                                {((testData.answers && testData.answers.length > 0) || (testData.answers && typeof testData.answers === 'object' && !Array.isArray(testData.answers))) && (
                                   <div>
                                     <h4 className="font-medium mb-2">Individual Answers:</h4>
                                     <div className="overflow-x-auto">
@@ -518,28 +435,36 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                           </tr>
                                         </thead>
                                         <tbody>
-                                          {testData.answers.map((answer: any, idx: number) => (
-                                            <tr key={idx} className="border-b">
-                                              <td className="p-1">{answer.questionId || idx + 1}</td>
-                                              <td className="p-1">
-                                                {Array.isArray(answer.selected) 
-                                                  ? `[${answer.selected.join(', ')}]`
+                                        {(Array.isArray(testData.answers) ? testData.answers : Object.entries(testData.answers).map(([questionId, answerText]) => ({
+                                          questionId: Number(questionId),
+                                          selected: answerText,
+                                          correct: false,
+                                          confirmed: true,
+                                          timeSpent: testData.questionTimes?.find((qt: any) => qt.questionId === Number(questionId))?.timeSpent || 0
+                                        }))).map((answer: any, idx: number) => (
+                                          <tr key={idx} className="border-b">
+                                            <td className="p-1">{answer.questionId || idx + 1}</td>
+                                            <td className="p-1">
+                                              {Array.isArray(answer.selected) 
+                                                ? `[${answer.selected.join(', ')}]`
+                                                : typeof answer.selected === 'string' 
+                                                  ? (answer.selected.length > 50 ? `${answer.selected.substring(0, 50)}...` : answer.selected)
                                                   : answer.selected || 'N/A'
-                                                }
-                                              </td>
-                                              <td className="p-1">
-                                                <Badge variant={answer.correct ? "default" : "destructive"} className="text-xs">
-                                                  {answer.correct ? "✓" : "✗"}
-                                                </Badge>
-                                              </td>
+                                              }
+                                            </td>
+                                            <td className="p-1">
+                                              <Badge variant={answer.correct ? "default" : "destructive"} className="text-xs">
+                                                {answer.correct ? "✓" : "✗"}
+                                              </Badge>
+                                            </td>
                                               <td className="p-1">
                                                 <Badge variant={answer.confirmed ? "default" : "secondary"} className="text-xs">
                                                   {answer.confirmed ? "Yes" : "No"}
                                                 </Badge>
                                               </td>
-                                              <td className="p-1">
-                                                {answer.timeSpent ? formatTime(answer.timeSpent) : 'N/A'}
-                                              </td>
+                                            <td className="p-1">
+                                              {answer.timeSpent && answer.timeSpent > 0 ? formatTime(answer.timeSpent) : 'N/A'}
+                                            </td>
                                             </tr>
                                           ))}
                                         </tbody>
@@ -548,34 +473,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                   </div>
                                 )}
 
-                                {/* Question Times Breakdown */}
-                                {testData.questionTimes && testData.questionTimes.length > 0 && (
-                                  <div className="mt-4">
-                                    <h4 className="font-medium mb-2">Question Time Breakdown:</h4>
-                                    <div className="overflow-x-auto">
-                                      <table className="w-full text-xs">
-                                        <thead>
-                                          <tr className="border-b">
-                                            <th className="text-left p-1">Question</th>
-                                            <th className="text-left p-1">Time Spent</th>
-                                            <th className="text-left p-1">Start Time</th>
-                                            <th className="text-left p-1">End Time</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {testData.questionTimes.map((qTime: any, idx: number) => (
-                                            <tr key={idx} className="border-b">
-                                              <td className="p-1">Q{qTime.questionId}</td>
-                                              <td className="p-1">{formatTime(qTime.timeSpent || 0)}</td>
-                                              <td className="p-1">{qTime.startTime ? new Date(qTime.startTime).toLocaleTimeString() : 'N/A'}</td>
-                                              <td className="p-1">{qTime.endTime ? new Date(qTime.endTime).toLocaleTimeString() : 'N/A'}</td>
-                                            </tr>
-                                          ))}
-                                        </tbody>
-                                      </table>
-                                    </div>
-                                  </div>
-                                )}
                               </CardContent>
                             </Card>
                           )
@@ -583,55 +480,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                       </div>
                     </div>
 
-                    {/* Section Time Breakdown */}
-                    {participantDetails.detailedTimeAnalysis?.sectionBreakdown && (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">Section Time Breakdown</h3>
-                        <div className="space-y-4">
-                          {participantDetails.detailedTimeAnalysis.sectionBreakdown.map((section: any, idx: number) => (
-                            <Card key={idx}>
-                              <CardHeader className="pb-3">
-                                <CardTitle className="text-base capitalize">{section.sectionName}</CardTitle>
-                                <p className="text-sm text-gray-600">
-                                  Time Spent: <strong>{formatTime(section.timeSpent || 0)}</strong>
-                                </p>
-                              </CardHeader>
-                              <CardContent>
-                                {section.questionAnalysis && section.questionAnalysis.length > 0 && (
-                                  <div>
-                                    <h4 className="font-medium mb-2">Question-Level Timing:</h4>
-                                    <div className="overflow-x-auto">
-                                      <table className="w-full text-xs">
-                                        <thead>
-                                          <tr className="border-b">
-                                            <th className="text-left p-1">Question</th>
-                                            <th className="text-left p-1">Time Spent</th>
-                                            <th className="text-left p-1">Interactions</th>
-                                            <th className="text-left p-1">Start Time</th>
-                                            <th className="text-left p-1">End Time</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {section.questionAnalysis.map((question: any, qIdx: number) => (
-                                            <tr key={qIdx} className="border-b">
-                                              <td className="p-1">Q{question.questionId}</td>
-                                              <td className="p-1">{formatTime(question.timeSpent || 0)}</td>
-                                              <td className="p-1">{question.interactionCount}</td>
-                                              <td className="p-1">{question.startTime ? formatDate(question.startTime) : 'N/A'}</td>
-                                              <td className="p-1">{question.endTime ? formatDate(question.endTime) : 'N/A'}</td>
-                                            </tr>
-                                          ))}
-                                        </tbody>
-                                      </table>
-                                    </div>
-                                  </div>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    )}
 
                   </div>
                 </CardContent>
