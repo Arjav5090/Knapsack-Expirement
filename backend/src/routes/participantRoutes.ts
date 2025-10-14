@@ -548,9 +548,9 @@ router.get('/api/v1/admin/analytics', adminAuth, async (req, res) => {
                     totalQuestions: p.tests.final.totalQuestions
                   } : null
                 },
-        timeBreakdown: p.timeTracking?.sections?.filter(section => section.timeSpent > 0).map(section => ({
+        timeBreakdown: p.timeTracking?.sections?.filter(section => (section.timeSpent || 0) > 0).map(section => ({
           sectionName: section.sectionName,
-          timeSpent: section.timeSpent,
+          timeSpent: section.timeSpent || 0,
           questionCount: section.questionTimes?.length || 0,
           avgTimePerQuestion: section.questionTimes?.length > 0 
             ? section.questionTimes.reduce((sum, q) => sum + (q.timeSpent || 0), 0) / section.questionTimes.length
