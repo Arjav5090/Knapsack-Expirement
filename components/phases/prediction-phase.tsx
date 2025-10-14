@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTimeTracker } from "@/lib/time-tracker"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -35,9 +36,78 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(true)
   const [questionLoadError, setQuestionLoadError] = useState<string | null>(null)
   const [participantId, setParticipantId] = useState<string | null>(null)
+  const timeTracker = useTimeTracker()
+  const [questionTimes, setQuestionTimes] = useState<{[key: number]: {startTime: number, endTime?: number, timeSpent?: number}}>({})
+  const [currentQuestionStartTime, setCurrentQuestionStartTime] = useState<number | null>(null)
 
   // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
   const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "https://knapsack-expirement.onrender.com", [])
+
+  // Start section timing when phase begins
+  useEffect(() => {
+    if (!showInstructions && questions.length > 0) {
+      timeTracker.startSection('final')
+      
+      // Start timing for first question
+      const questionId = questions[currentQuestion]?.id
+      if (questionId) {
+        const startTime = Date.now()
+        setCurrentQuestionStartTime(startTime)
+        setQuestionTimes(prev => ({
+          ...prev,
+          [questionId]: {
+            startTime,
+            endTime: undefined,
+            timeSpent: undefined
+          }
+        }))
+        timeTracker.startQuestion(questionId, 'final')
+      }
+    }
+    
+    return () => {
+      timeTracker.endSection()
+    }
+  }, [showInstructions, questions, timeTracker, currentQuestion])
+
+  // Track question timing when current question changes
+  useEffect(() => {
+    if (!showInstructions && questions.length > 0 && !isComplete) {
+      const questionId = questions[currentQuestion]?.id
+      if (questionId) {
+        // End timing for previous question
+        if (currentQuestionStartTime !== null) {
+          const prevQuestionId = questions[currentQuestion - 1]?.id
+          if (prevQuestionId) {
+            const endTime = Date.now()
+            const timeSpent = endTime - currentQuestionStartTime
+            setQuestionTimes(prev => ({
+              ...prev,
+              [prevQuestionId]: {
+                ...prev[prevQuestionId],
+                endTime,
+                timeSpent
+              }
+            }))
+          }
+        }
+        
+        // Start timing for current question
+        const startTime = Date.now()
+        setCurrentQuestionStartTime(startTime)
+        setQuestionTimes(prev => ({
+          ...prev,
+          [questionId]: {
+            startTime,
+            endTime: undefined,
+            timeSpent: undefined
+          }
+        }))
+        
+        timeTracker.startQuestion(questionId, 'final')
+      }
+    }
+  }, [currentQuestion, showInstructions, questions, isComplete, timeTracker, currentQuestionStartTime])
 
   // Load participant ID
   useEffect(() => {
@@ -113,6 +183,30 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
 
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
     const questionId = questions[currentQuestion].id
+    const endTime = Date.now()
+    
+    // Record final time for this question
+    if (currentQuestionStartTime !== null) {
+      const timeSpent = endTime - currentQuestionStartTime
+      setQuestionTimes(prev => ({
+        ...prev,
+        [questionId]: {
+          ...prev[questionId],
+          endTime,
+          timeSpent
+        }
+      }))
+    }
+    
+    // Log interaction
+    timeTracker.logInteraction('answer_confirmed', {
+      questionId,
+      selectedBalls,
+      isCorrect,
+      timeSpent: currentQuestionStartTime ? endTime - currentQuestionStartTime : 0,
+      timestamp: new Date().toISOString()
+    })
+    
     setAnswers((prev) => ({
       ...prev,
       [questionId]: {
@@ -149,7 +243,14 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
           selected: value.selected,
           confirmed: value.confirmed,
           correct: value.correct,
+          timeSpent: questionTimes[Number(questionId)]?.timeSpent || 0
         })),
+        questionTimes: Object.entries(questionTimes).map(([questionId, timing]) => ({
+          questionId: Number(questionId),
+          startTime: timing.startTime,
+          endTime: timing.endTime,
+          timeSpent: timing.timeSpent || 0
+        }))
       },
     }
   
@@ -187,6 +288,29 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
   }
 
   const navigateToQuestion = (index: number) => {
+    // Record time for current question before navigating
+    if (currentQuestionStartTime !== null && questions[currentQuestion]) {
+      const currentQuestionId = questions[currentQuestion].id
+      const endTime = Date.now()
+      const timeSpent = endTime - currentQuestionStartTime
+      setQuestionTimes(prev => ({
+        ...prev,
+        [currentQuestionId]: {
+          ...prev[currentQuestionId],
+          endTime,
+          timeSpent
+        }
+      }))
+    }
+    
+    // Log navigation interaction
+    timeTracker.logInteraction('question_navigation', {
+      fromQuestion: currentQuestion,
+      toQuestion: index,
+      timeSpent: currentQuestionStartTime ? Date.now() - currentQuestionStartTime : 0,
+      timestamp: new Date().toISOString()
+    })
+    
     setCurrentQuestion(index)
   }
 

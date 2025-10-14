@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useTimeTracker } from "@/lib/time-tracker"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -46,9 +47,72 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   const [answers, setAnswers] = useState<{ [key: number]: string }>({})
   const [showInstructions, setShowInstructions] = useState(true)
   const [isComplete, setIsComplete] = useState(false)
+  const timeTracker = useTimeTracker()
+  const [questionTimes, setQuestionTimes] = useState<{[key: number]: {startTime: number, endTime?: number, timeSpent?: number}}>({})
+  const [currentQuestionStartTime, setCurrentQuestionStartTime] = useState<number | null>(null)
 
   // API base (configure in .env.local as NEXT_PUBLIC_API_BASE=http://localhost:8787)
   const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "https://knapsack-expirement.onrender.com", [])
+
+  // Start section timing when phase begins
+  useEffect(() => {
+    if (!showInstructions) {
+      timeTracker.startSection('strategy')
+      
+      // Start timing for first question
+      if (strategyQuestions[currentQuestion]) {
+        const startTime = Date.now()
+        setCurrentQuestionStartTime(startTime)
+        setQuestionTimes(prev => ({
+          ...prev,
+          [currentQuestion + 1]: {
+            startTime,
+            endTime: undefined,
+            timeSpent: undefined
+          }
+        }))
+        timeTracker.startQuestion(currentQuestion + 1, 'strategy')
+      }
+    }
+    
+    return () => {
+      timeTracker.endSection()
+    }
+  }, [showInstructions, timeTracker, currentQuestion])
+
+  // Track question timing when current question changes
+  useEffect(() => {
+    if (!showInstructions && strategyQuestions[currentQuestion]) {
+      // End timing for previous question
+      if (currentQuestionStartTime !== null && currentQuestion > 0) {
+        const prevQuestionId = currentQuestion
+        const endTime = Date.now()
+        const timeSpent = endTime - currentQuestionStartTime
+        setQuestionTimes(prev => ({
+          ...prev,
+          [prevQuestionId]: {
+            ...prev[prevQuestionId],
+            endTime,
+            timeSpent
+          }
+        }))
+      }
+      
+      // Start timing for current question
+      const startTime = Date.now()
+      setCurrentQuestionStartTime(startTime)
+      setQuestionTimes(prev => ({
+        ...prev,
+        [currentQuestion + 1]: {
+          startTime,
+          endTime: undefined,
+          timeSpent: undefined
+        }
+      }))
+      
+      timeTracker.startQuestion(currentQuestion + 1, 'strategy')
+    }
+  }, [currentQuestion, showInstructions, timeTracker, currentQuestionStartTime])
 
   const handleAnswerChange = (questionId: number, answer: string) => {
     setAnswers(prev => ({
@@ -72,6 +136,19 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   }
 
   const completePhase = async () => {
+    // Finalize timing for current question if still active
+    const finalQuestionTimes = { ...questionTimes }
+    if (currentQuestionStartTime !== null) {
+      const currentQuestionId = currentQuestion + 1
+      const endTime = Date.now()
+      const timeSpent = endTime - currentQuestionStartTime
+      finalQuestionTimes[currentQuestionId] = {
+        ...finalQuestionTimes[currentQuestionId],
+        endTime,
+        timeSpent
+      }
+    }
+
     const payload = {
       phase: "strategy",
       participantId: localStorage.getItem("participantId"),
@@ -79,7 +156,14 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
         completed: true,
         answers,
         questionsAnswered: Object.keys(answers).length,
-        totalQuestions: strategyQuestions.length
+        totalQuestions: strategyQuestions.length,
+        timeUsed: timeTracker.getCurrentTime()?.elapsed || 0,
+        questionTimes: Object.entries(finalQuestionTimes).map(([questionId, timing]) => ({
+          questionId: Number(questionId),
+          startTime: timing.startTime,
+          endTime: timing.endTime,
+          timeSpent: timing.timeSpent || 0
+        }))
       }
     }
   

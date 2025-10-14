@@ -48,7 +48,7 @@ router.get('/api/v1/check-participant/:prolificPid', async (req, res) => {
     }
     
     // Check if participant has completed all required phases
-    const requiredPhases = ['practice', 'benchmark', 'strategy', 'final'] as const
+    const requiredPhases = ['practice', 'skill', 'benchmark', 'strategy', 'final'] as const
     const completedPhases = requiredPhases.filter(phase => 
       (participant.tests as any)?.[phase]?.completed === true
     )
@@ -130,6 +130,7 @@ router.post('/api/v1/register-prolific', async (req, res) => {
 
   // Validate Prolific ID format (should be a valid UUID-like string)
   const prolificIdPattern = /^[a-zA-Z0-9]{8,}$/
+  
   if (!prolificIdPattern.test(prolificPid)) {
     return res.status(400).json({ 
       error: 'Invalid Prolific participant ID format' 
@@ -203,7 +204,9 @@ router.post('/api/v1/ingest-phase', async (req, res) => {
             [`tests.${phase}.correctAnswers`]: data.correctAnswers,
             [`tests.${phase}.totalQuestions`]: data.totalQuestions,
             [`tests.${phase}.accuracy`]: data.accuracy,
-            [`tests.${phase}.answers`]: data.answers
+            [`tests.${phase}.answers`]: data.answers,
+            [`tests.${phase}.timeUsed`]: data.timeUsed,
+            [`tests.${phase}.questionTimes`]: data.questionTimes || []
           }
         },
         { upsert: true, new: true }
@@ -266,6 +269,159 @@ router.get('/api/v1/export-prolific-data', async (req, res) => {
   }
 })
 
+// LOG time tracking data
+router.post('/api/v1/log-time', async (req, res) => {
+  const { participantId, sectionName, questionId, timeData, interactionType } = req.body
+  
+  if (!participantId || !timeData) {
+    return res.status(400).json({ error: 'Missing required fields: participantId, timeData' })
+  }
+
+  try {
+    const participant = await ParticipantModel.findOne({ participantId })
+    
+    if (!participant) {
+      return res.status(404).json({ error: 'Participant not found' })
+    }
+
+    // Initialize timeTracking if it doesn't exist
+    if (!participant.timeTracking) {
+      participant.timeTracking = {
+        totalStudyTime: 0,
+        sections: [] as any,
+        sessionStart: new Date(),
+        sessionEnd: null
+      }
+    }
+
+    // Handle different types of time logging
+    if (sectionName && !questionId) {
+      // Section-level time tracking
+      const existingSection = participant.timeTracking?.sections.find((s: any) => s.sectionName === sectionName)
+      
+      if (existingSection) {
+        if (timeData.endTime) {
+          existingSection.endTime = new Date(timeData.endTime)
+          existingSection.timeSpent = new Date(timeData.endTime).getTime() - new Date(existingSection.startTime).getTime()
+        }
+      } else {
+        participant.timeTracking?.sections.push({
+          sectionName,
+          startTime: new Date(timeData.startTime),
+          endTime: timeData.endTime ? new Date(timeData.endTime) : null,
+          timeSpent: timeData.timeSpent || 0,
+          questionTimes: [] as any
+        } as any)
+      }
+    } else if (sectionName && questionId) {
+      // Question-level time tracking
+      let section = participant.timeTracking?.sections.find((s: any) => s.sectionName === sectionName)
+      
+      if (!section) {
+        const newSection = {
+          sectionName,
+          startTime: new Date(),
+          endTime: null,
+          timeSpent: 0,
+          questionTimes: [] as any
+        }
+        participant.timeTracking?.sections.push(newSection as any)
+        section = participant.timeTracking?.sections[participant.timeTracking.sections.length - 1]
+      }
+
+      const existingQuestion = section?.questionTimes.find((q: any) => q.questionId === questionId)
+      
+      if (existingQuestion) {
+        if (timeData.endTime) {
+          existingQuestion.endTime = new Date(timeData.endTime)
+          existingQuestion.timeSpent = new Date(timeData.endTime).getTime() - new Date(existingQuestion.startTime).getTime()
+        }
+        
+        // Add interaction if provided
+        if (interactionType) {
+          existingQuestion.interactions.push({
+            type: interactionType,
+            timestamp: new Date(),
+            data: timeData.interactionData || {}
+          })
+        }
+      } else {
+        section?.questionTimes.push({
+          questionId,
+          startTime: new Date(timeData.startTime),
+          endTime: timeData.endTime ? new Date(timeData.endTime) : null,
+          timeSpent: timeData.timeSpent || 0,
+          interactions: interactionType ? [{
+            type: interactionType,
+            timestamp: new Date(),
+            data: timeData.interactionData || {}
+          }] : []
+        } as any)
+      }
+    }
+
+    // Update total study time
+    if (timeData.totalStudyTime && participant.timeTracking) {
+      participant.timeTracking.totalStudyTime = timeData.totalStudyTime
+    }
+
+    await participant.save()
+    
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Time data logged successfully' 
+    })
+    
+  } catch (err) {
+    console.error('[LOG TIME ERROR]', err)
+    return res.status(500).json({ error: 'Failed to log time data' })
+  }
+})
+
+// GET time analytics for a participant
+router.get('/api/v1/participant-analytics/:participantId', async (req, res) => {
+  const { participantId } = req.params
+  
+  try {
+    const participant = await ParticipantModel.findOne({ participantId })
+    
+    if (!participant) {
+      return res.status(404).json({ error: 'Participant not found' })
+    }
+
+    // Calculate analytics
+    const analytics = {
+      participantId,
+      prolificPid: participant.prolificData?.prolificPid,
+      totalStudyTime: participant.timeTracking?.totalStudyTime || 0,
+      sessionDuration: participant.timeTracking?.sessionStart && participant.timeTracking?.sessionEnd 
+        ? new Date(participant.timeTracking.sessionEnd).getTime() - new Date(participant.timeTracking.sessionStart).getTime()
+        : null,
+      sections: participant.timeTracking?.sections?.map(section => ({
+        sectionName: section.sectionName,
+        timeSpent: section.timeSpent,
+        questionCount: section.questionTimes.length,
+        avgTimePerQuestion: section.questionTimes.length > 0 
+          ? section.questionTimes.reduce((sum, q) => sum + (q.timeSpent || 0), 0) / section.questionTimes.length
+          : 0,
+        questions: section.questionTimes.map(q => ({
+          questionId: q.questionId,
+          timeSpent: q.timeSpent,
+          interactionCount: q.interactions.length,
+          interactions: q.interactions
+        }))
+      })) || [],
+      testResults: participant.tests
+    }
+    
+    return res.status(200).json(analytics)
+    
+  } catch (err) {
+    console.error('[PARTICIPANT ANALYTICS ERROR]', err)
+    return res.status(500).json({ error: 'Failed to get participant analytics' })
+  }
+})
+
 // GET study statistics
 router.get('/api/v1/study-stats', async (req, res) => {
   try {
@@ -311,5 +467,187 @@ router.get('/api/v1/study-stats', async (req, res) => {
   } catch (err) {
     console.error('[STATS ERROR]', err)
     return res.status(500).json({ error: 'Failed to get stats' })
+  }
+})
+
+// ADMIN AUTHENTICATION MIDDLEWARE
+const adminAuth = (req: any, res: any, next: any) => {
+  const adminKey = req.headers['x-admin-key'] || req.query.adminKey
+  const validAdminKey = process.env.ADMIN_KEY || 'knapsack-admin-2024-secure'
+  
+  if (!adminKey || adminKey !== validAdminKey) {
+    return res.status(401).json({ 
+      error: 'Unauthorized. Admin access required.',
+      hint: 'Provide valid admin key in x-admin-key header or adminKey query parameter'
+    })
+  }
+  
+  next()
+}
+
+// ADMIN ANALYTICS DASHBOARD - Protected Route
+router.get('/api/v1/admin/analytics', adminAuth, async (req, res) => {
+  try {
+    const participants = await ParticipantModel.find({ 
+      'prolificData.prolificPid': { $exists: true } 
+    })
+    
+    // Calculate comprehensive analytics
+    const analytics = {
+      overview: {
+        totalParticipants: participants.length,
+        completedParticipants: participants.filter(p => {
+          const requiredPhases = ['practice', 'skill', 'benchmark', 'strategy', 'final']
+          const completedPhases = requiredPhases.filter(phase => 
+            (p.tests as any)?.[phase]?.completed === true
+          )
+          return completedPhases.length === requiredPhases.length
+        }).length,
+        avgStudyTime: 0,
+        totalStudyTime: 0
+      },
+      timeAnalytics: {
+        avgTimePerSection: {},
+        avgTimePerQuestion: {},
+        participantTimeDistribution: [],
+        sectionCompletionRates: {}
+      },
+      participantDetails: participants.map(p => ({
+        participantId: p.participantId,
+        prolificPid: p.prolificData?.prolificPid,
+        registeredAt: p.prolificData?.registeredAt,
+        completedAt: p.prolificData?.completedAt,
+        totalStudyTime: p.timeTracking?.totalStudyTime || 0,
+        sectionsCompleted: p.timeTracking?.sections?.length || 0,
+                testResults: {
+                  practice: p.tests?.practice ? {
+                    completed: p.tests.practice.completed,
+                    accuracy: p.tests.practice.accuracy,
+                    correctAnswers: p.tests.practice.correctAnswers,
+                    totalQuestions: p.tests.practice.totalQuestions
+                  } : null,
+                  skill: p.tests?.skill ? {
+                    completed: p.tests.skill.completed,
+                    accuracy: p.tests.skill.accuracy,
+                    correctAnswers: p.tests.skill.correctAnswers,
+                    totalQuestions: p.tests.skill.totalQuestions
+                  } : null,
+                  benchmark: p.tests?.benchmark ? {
+                    completed: p.tests.benchmark.completed,
+                    accuracy: p.tests.benchmark.accuracy,
+                    correctAnswers: p.tests.benchmark.correctAnswers,
+                    totalQuestions: p.tests.benchmark.totalQuestions
+                  } : null,
+                  strategy: p.tests?.strategy ? {
+                    completed: p.tests.strategy.completed
+                  } : null,
+                  final: p.tests?.final ? {
+                    completed: p.tests.final.completed,
+                    accuracy: p.tests.final.accuracy,
+                    correctAnswers: p.tests.final.correctAnswers,
+                    totalQuestions: p.tests.final.totalQuestions
+                  } : null
+                },
+        timeBreakdown: p.timeTracking?.sections?.map(section => ({
+          sectionName: section.sectionName,
+          timeSpent: section.timeSpent,
+          questionCount: section.questionTimes?.length || 0,
+          avgTimePerQuestion: section.questionTimes?.length > 0 
+            ? section.questionTimes.reduce((sum, q) => sum + (q.timeSpent || 0), 0) / section.questionTimes.length
+            : 0
+        })) || []
+      }))
+    }
+    
+    // Calculate aggregate time analytics
+    const validTimeData = participants.filter(p => p.timeTracking?.totalStudyTime)
+    if (validTimeData.length > 0) {
+      analytics.overview.totalStudyTime = validTimeData.reduce((sum, p) => sum + (p.timeTracking?.totalStudyTime || 0), 0)
+      analytics.overview.avgStudyTime = analytics.overview.totalStudyTime / validTimeData.length
+    }
+    
+    // Section time analytics
+    const sectionTimes: { [key: string]: number[] } = {}
+    participants.forEach(p => {
+      p.timeTracking?.sections?.forEach(section => {
+        if (!sectionTimes[section.sectionName]) {
+          sectionTimes[section.sectionName] = []
+        }
+        if (section.timeSpent) {
+          sectionTimes[section.sectionName].push(section.timeSpent)
+        }
+      })
+    })
+    
+    Object.keys(sectionTimes).forEach(sectionName => {
+      const times = sectionTimes[sectionName]
+      ;(analytics.timeAnalytics.avgTimePerSection as any)[sectionName] = times.length > 0 
+        ? times.reduce((sum, time) => sum + time, 0) / times.length 
+        : 0
+    })
+    
+    return res.status(200).json(analytics)
+    
+  } catch (err) {
+    console.error('[ADMIN ANALYTICS ERROR]', err)
+    return res.status(500).json({ error: 'Failed to get admin analytics' })
+  }
+})
+
+// ADMIN PARTICIPANT DETAIL - Protected Route
+router.get('/api/v1/admin/participant/:participantId', adminAuth, async (req, res) => {
+  const { participantId } = req.params
+  
+  try {
+    const participant = await ParticipantModel.findOne({ participantId })
+    
+    if (!participant) {
+      return res.status(404).json({ error: 'Participant not found' })
+    }
+
+    const detailedAnalytics = {
+      participantInfo: {
+        participantId: participant.participantId,
+        prolificPid: participant.prolificData?.prolificPid,
+        studyId: participant.prolificData?.studyId,
+        sessionId: participant.prolificData?.sessionId,
+        registeredAt: participant.prolificData?.registeredAt,
+        completedAt: participant.prolificData?.completedAt,
+        createdAt: participant.createdAt
+      },
+      timeTracking: participant.timeTracking,
+      testResults: participant.tests,
+      result: participant.result,
+      detailedTimeAnalysis: {
+        totalTimeSpent: participant.timeTracking?.totalStudyTime || 0,
+        sessionDuration: participant.timeTracking?.sessionStart && participant.timeTracking?.sessionEnd 
+          ? new Date(participant.timeTracking.sessionEnd).getTime() - new Date(participant.timeTracking.sessionStart).getTime()
+          : null,
+        sectionBreakdown: participant.timeTracking?.sections?.map((section: any) => ({
+          sectionName: section.sectionName,
+          startTime: section.startTime,
+          endTime: section.endTime,
+          timeSpent: section.timeSpent,
+          questionAnalysis: section.questionTimes?.map((q: any) => ({
+            questionId: q.questionId,
+            timeSpent: q.timeSpent,
+            startTime: q.startTime,
+            endTime: q.endTime,
+            interactionCount: q.interactions?.length || 0,
+            interactions: q.interactions?.map((interaction: any) => ({
+              type: interaction.type,
+              timestamp: interaction.timestamp,
+              data: interaction.data
+            })) || []
+          })) || []
+        })) || []
+      }
+    }
+    
+    return res.status(200).json(detailedAnalytics)
+    
+  } catch (err) {
+    console.error('[ADMIN PARTICIPANT DETAIL ERROR]', err)
+    return res.status(500).json({ error: 'Failed to get participant details' })
   }
 })

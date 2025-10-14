@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useTimeTracker } from "@/lib/time-tracker"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -156,6 +157,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     Array<{ questionId: number; selected: number[]; correct: boolean; timeSpent: number }>
   >([])
   const [showInstructions, setShowInstructions] = useState(true)
+  const timeTracker = useTimeTracker()
   const [startTime, setStartTime] = useState<number>(0)
   const [totalTimeLeft, setTotalTimeLeft] = useState(15 * 60)
   const [questionStartTime, setQuestionStartTime] = useState<number>(0)
@@ -240,7 +242,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     const performanceScore = correctAnswers
 
     const payload = {
-      phase: "test1",
+      phase: "skill",
       participantId: localStorage.getItem("participantId"),
       data: {
         completed: true,
@@ -249,6 +251,12 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
         accuracy: correctAnswers / skillsQuestions.length,
         timeUsed: 15 * 60 - totalTimeLeft,
         answers,
+        questionTimes: answers.map(answer => ({
+          questionId: answer.questionId,
+          startTime: 0, // Will be populated by actual timing
+          endTime: 0,
+          timeSpent: answer.timeSpent
+        }))
       },
     }
 

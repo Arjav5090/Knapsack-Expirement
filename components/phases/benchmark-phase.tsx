@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useMemo } from "react"
+import { useTimeTracker } from "@/lib/time-tracker"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -30,9 +31,11 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   }>({})
   const [starredQuestions, setStarredQuestions] = useState<Set<number>>(new Set())
   const [showInstructions, setShowInstructions] = useState(true)
-  const [timeLeft, setTimeLeft] = useState(20 * 60) // 20 minutes
   const [isComplete, setIsComplete] = useState(false)
+  const timeTracker = useTimeTracker()
   const [showFinishWarning, setShowFinishWarning] = useState(false)
+  const [questionTimes, setQuestionTimes] = useState<{[key: number]: {startTime: number, endTime?: number, timeSpent?: number}}>({})
+  const [currentQuestionStartTime, setCurrentQuestionStartTime] = useState<number | null>(null)
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(true)
   const [questionLoadError, setQuestionLoadError] = useState<string | null>(null)
   const [participantId, setParticipantId] = useState<string | null>(null)
@@ -97,22 +100,16 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     loadQuestions()
   }, [participantId])
 
-  // Timer
+  // Start section timing when instructions are dismissed
   useEffect(() => {
-    if (!showInstructions && timeLeft > 0 && !isComplete) {
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            handleTimeUp()
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-
-      return () => clearInterval(timer)
+    if (!showInstructions && !isComplete) {
+      timeTracker.startSection('benchmark')
+      
+      return () => {
+        timeTracker.endSection()
+      }
     }
-  }, [showInstructions, timeLeft, isComplete])
+  }, [showInstructions, isComplete, timeTracker])
 
   // Define completeTest before useEffect that uses it
   const completeTest = useCallback(async () => {
@@ -123,6 +120,19 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     const unansweredQuestions = questions.length - confirmedAnswers
     const performanceScore = correctAnswers
   
+    // Finalize timing for current question if still active
+    const finalQuestionTimes = { ...questionTimes }
+    if (currentQuestionStartTime !== null && questions[currentQuestion]) {
+      const currentQuestionId = questions[currentQuestion].id
+      const endTime = Date.now()
+      const timeSpent = endTime - currentQuestionStartTime
+      finalQuestionTimes[currentQuestionId] = {
+        ...finalQuestionTimes[currentQuestionId],
+        endTime,
+        timeSpent
+      }
+    }
+
     const payload = {
       phase: "benchmark",
       participantId,
@@ -131,12 +141,19 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
         correctAnswers,
         totalQuestions: questions.length,
         accuracy: correctAnswers / questions.length,
-        timeUsed: 20 * 60 - timeLeft,
+        timeUsed: timeTracker.getCurrentTime()?.elapsed || 0,
         answers: Object.entries(answers).map(([questionId, a]) => ({
           questionId: Number(questionId),
           selected: a.selected,
           correct: a.correct,
-          confirmed: a.confirmed
+          confirmed: a.confirmed,
+          timeSpent: finalQuestionTimes[Number(questionId)]?.timeSpent || 0
+        })),
+        questionTimes: Object.entries(finalQuestionTimes).map(([questionId, timing]) => ({
+          questionId: Number(questionId),
+          startTime: timing.startTime,
+          endTime: timing.endTime,
+          timeSpent: timing.timeSpent || 0
         }))
       }
     }
@@ -169,7 +186,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
       })
       onNext()
     }
-  }, [answers, participantId, questions.length, timeLeft, API_BASE, updateParticipantData, onNext])
+  }, [answers, participantId, questions, API_BASE, updateParticipantData, onNext, timeTracker, questionTimes, currentQuestionStartTime, currentQuestion])
 
   // Handle completion with useEffect (must be at component level, not conditional)
   useEffect(() => {
@@ -182,8 +199,75 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     }
   }, [isComplete, completeTest])
 
+  // Track question timing when current question changes
+  useEffect(() => {
+    if (!showInstructions && questions.length > 0 && !isComplete) {
+      const questionId = questions[currentQuestion]?.id
+      if (questionId) {
+        // End timing for previous question
+        if (currentQuestionStartTime !== null) {
+          const prevQuestionId = questions[currentQuestion - 1]?.id
+          if (prevQuestionId) {
+            const endTime = Date.now()
+            const timeSpent = endTime - currentQuestionStartTime
+            setQuestionTimes(prev => ({
+              ...prev,
+              [prevQuestionId]: {
+                ...prev[prevQuestionId],
+                endTime,
+                timeSpent
+              }
+            }))
+          }
+        }
+        
+        // Start timing for current question
+        const startTime = Date.now()
+        setCurrentQuestionStartTime(startTime)
+        setQuestionTimes(prev => ({
+          ...prev,
+          [questionId]: {
+            startTime,
+            endTime: undefined,
+            timeSpent: undefined
+          }
+        }))
+        
+        timeTracker.startQuestion(questionId, 'benchmark')
+      }
+      
+      return () => {
+        timeTracker.endQuestion()
+      }
+    }
+  }, [currentQuestion, showInstructions, questions, isComplete, timeTracker, currentQuestionStartTime])
+
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
     const questionId = questions[currentQuestion].id
+    const endTime = Date.now()
+    
+    // Record final time for this question
+    if (currentQuestionStartTime !== null) {
+      const timeSpent = endTime - currentQuestionStartTime
+      setQuestionTimes(prev => ({
+        ...prev,
+        [questionId]: {
+          ...prev[questionId],
+          endTime,
+          timeSpent
+        }
+      }))
+    }
+    
+    // Log interaction
+    timeTracker.logInteraction('answer_confirmed', {
+      questionId,
+      selectedBalls,
+      isCorrect,
+      timeSpent: currentQuestionStartTime ? endTime - currentQuestionStartTime : 0,
+      timestamp: new Date().toISOString()
+    })
+    
     setAnswers((prev) => ({
       ...prev,
       [questionId]: {
@@ -212,6 +296,29 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   }
 
   const navigateToQuestion = (index: number) => {
+    // Record time for current question before navigating
+    if (currentQuestionStartTime !== null && questions[currentQuestion]) {
+      const currentQuestionId = questions[currentQuestion].id
+      const endTime = Date.now()
+      const timeSpent = endTime - currentQuestionStartTime
+      setQuestionTimes(prev => ({
+        ...prev,
+        [currentQuestionId]: {
+          ...prev[currentQuestionId],
+          endTime,
+          timeSpent
+        }
+      }))
+    }
+    
+    // Log navigation interaction
+    timeTracker.logInteraction('question_navigation', {
+      fromQuestion: currentQuestion,
+      toQuestion: index,
+      timeSpent: currentQuestionStartTime ? Date.now() - currentQuestionStartTime : 0,
+      timestamp: new Date().toISOString()
+    })
+    
     setCurrentQuestion(index)
   }
 
@@ -375,10 +482,8 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
       <div className="mb-6 flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <h2 className="text-2xl font-bold text-gray-900">Test 2</h2>
-          <div className={`px-3 py-2 rounded-lg text-lg font-mono font-bold ${
-            timeLeft <= 60 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-          }`}>
-            {formatTime(timeLeft)}
+          <div className="px-3 py-2 rounded-lg text-lg font-medium bg-green-100 text-green-700">
+            Question {currentQuestion + 1} of {questions.length}
           </div>
         </div>
         <Button onClick={() => setShowFinishWarning(true)} variant="outline" className="bg-red-50 hover:bg-red-100 border-red-200">
