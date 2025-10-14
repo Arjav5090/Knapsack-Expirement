@@ -420,7 +420,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                 </div>
                                 
                                 {/* Individual Answers */}
-                                {((testData.answers && testData.answers.length > 0) || (testData.answers && typeof testData.answers === 'object' && !Array.isArray(testData.answers))) && (
+                                {((testData.answers && Array.isArray(testData.answers) && testData.answers.length > 0) || (testData.answers && typeof testData.answers === 'object' && !Array.isArray(testData.answers) && Object.keys(testData.answers).length > 0)) && (
                                   <div>
                                     <h4 className="font-medium mb-2">Individual Answers:</h4>
                                     <div className="overflow-x-auto">
@@ -435,13 +435,34 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                           </tr>
                                         </thead>
                                         <tbody>
-                                        {(Array.isArray(testData.answers) ? testData.answers : Object.entries(testData.answers).map(([questionId, answerText]) => ({
-                                          questionId: Number(questionId),
-                                          selected: answerText,
-                                          correct: false,
-                                          confirmed: true,
-                                          timeSpent: testData.questionTimes?.find((qt: any) => qt.questionId === Number(questionId))?.timeSpent || 0
-                                        }))).map((answer: any, idx: number) => (
+                                        {(() => {
+                                          // Handle strategy phase answers (stored as array containing object)
+                                          if (testName === 'strategy' && Array.isArray(testData.answers) && testData.answers.length > 0 && typeof testData.answers[0] === 'object') {
+                                            const answersObj = testData.answers[0]
+                                            return Object.entries(answersObj).map(([questionId, answerText]) => ({
+                                              questionId: Number(questionId),
+                                              selected: answerText,
+                                              correct: false,
+                                              confirmed: true,
+                                              timeSpent: testData.questionTimes?.find((qt: any) => qt.questionId === Number(questionId))?.timeSpent || 0
+                                            }))
+                                          }
+                                          // Handle regular array answers
+                                          else if (Array.isArray(testData.answers)) {
+                                            return testData.answers
+                                          }
+                                          // Handle object answers
+                                          else if (testData.answers && typeof testData.answers === 'object') {
+                                            return Object.entries(testData.answers).map(([questionId, answerText]) => ({
+                                              questionId: Number(questionId),
+                                              selected: answerText,
+                                              correct: false,
+                                              confirmed: true,
+                                              timeSpent: testData.questionTimes?.find((qt: any) => qt.questionId === Number(questionId))?.timeSpent || 0
+                                            }))
+                                          }
+                                          return []
+                                        })().map((answer: any, idx: number) => (
                                           <tr key={idx} className="border-b">
                                             <td className="p-1">{answer.questionId || idx + 1}</td>
                                             <td className="p-1">
