@@ -548,7 +548,7 @@ router.get('/api/v1/admin/analytics', adminAuth, async (req, res) => {
                     totalQuestions: p.tests.final.totalQuestions
                   } : null
                 },
-        timeBreakdown: p.timeTracking?.sections?.map(section => ({
+        timeBreakdown: p.timeTracking?.sections?.filter(section => section.timeSpent > 0).map(section => ({
           sectionName: section.sectionName,
           timeSpent: section.timeSpent,
           questionCount: section.questionTimes?.length || 0,

@@ -62,6 +62,21 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const [participantDetails, setParticipantDetails] = useState<any>(null)
   const [loadingDetails, setLoadingDetails] = useState(false)
 
+  // Utility functions
+  const formatTime = (milliseconds: number) => {
+    if (!milliseconds || milliseconds === 0) return '0m 0s'
+    const seconds = Math.floor(milliseconds / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes}m ${remainingSeconds}s`
+  }
+
+  const formatDate = (dateString: string | number) => {
+    if (!dateString) return 'N/A'
+    const date = new Date(dateString)
+    return date.toLocaleTimeString()
+  }
+
   const API_BASE = process.env.NODE_ENV === 'production' 
     ? "https://knapsack-expirement.onrender.com"
     : "http://localhost:8787"
@@ -153,21 +168,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     }
   }
 
-  const formatTime = (ms: number) => {
-    const minutes = Math.floor(ms / 60000)
-    const seconds = Math.floor((ms % 60000) / 1000)
-    return `${minutes}m ${seconds}s`
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
   // Authentication Screen
   if (!isAuthenticated) {

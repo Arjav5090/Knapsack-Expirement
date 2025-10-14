@@ -193,12 +193,24 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
     if (hasCompleted.current) return
 
-    const timeSpent = Date.now() - questionStartTime
+    const endTime = Date.now()
+    const timeSpent = endTime - questionStartTime
+    const questionId = skillsQuestions[currentQuestion].id
+    
+    // Log interaction
+    timeTracker.logInteraction('answer_confirmed', {
+      questionId,
+      selectedBalls,
+      isCorrect,
+      timeSpent,
+      timestamp: new Date().toISOString()
+    })
+
     const newAnswer = {
-      questionId: skillsQuestions[currentQuestion].id,
+      questionId,
       selected: selectedBalls,
       correct: isCorrect,
-      timeSpent: Math.round(timeSpent / 1000),
+      timeSpent,
     }
 
     setAnswers((prev) => [...prev, newAnswer])
