@@ -439,13 +439,16 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                           // Handle strategy phase answers (stored as array containing object)
                                           if (testName === 'strategy' && Array.isArray(testData.answers) && testData.answers.length > 0 && typeof testData.answers[0] === 'object') {
                                             const answersObj = testData.answers[0]
-                                            return Object.entries(answersObj).map(([questionId, answerText]) => ({
-                                              questionId: Number(questionId),
-                                              selected: answerText,
-                                              correct: false,
-                                              confirmed: true,
-                                              timeSpent: testData.questionTimes?.find((qt: any) => qt.questionId === Number(questionId))?.timeSpent || 0
-                                            }))
+                                            return Object.entries(answersObj).map(([questionId, answerText]) => {
+                                              const questionTime = testData.questionTimes?.find((qt: any) => qt.questionId === Number(questionId))
+                                              return {
+                                                questionId: Number(questionId),
+                                                selected: answerText,
+                                                correct: false,
+                                                confirmed: true,
+                                                timeSpent: questionTime?.timeSpent || 0
+                                              }
+                                            })
                                           }
                                           // Handle regular array answers
                                           else if (Array.isArray(testData.answers)) {
@@ -453,13 +456,16 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                           }
                                           // Handle object answers
                                           else if (testData.answers && typeof testData.answers === 'object') {
-                                            return Object.entries(testData.answers).map(([questionId, answerText]) => ({
-                                              questionId: Number(questionId),
-                                              selected: answerText,
-                                              correct: false,
-                                              confirmed: true,
-                                              timeSpent: testData.questionTimes?.find((qt: any) => qt.questionId === Number(questionId))?.timeSpent || 0
-                                            }))
+                                            return Object.entries(testData.answers).map(([questionId, answerText]) => {
+                                              const questionTime = testData.questionTimes?.find((qt: any) => qt.questionId === Number(questionId))
+                                              return {
+                                                questionId: Number(questionId),
+                                                selected: answerText,
+                                                correct: false,
+                                                confirmed: true,
+                                                timeSpent: questionTime?.timeSpent || 0
+                                              }
+                                            })
                                           }
                                           return []
                                         })().map((answer: any, idx: number) => (
@@ -484,7 +490,23 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                                 </Badge>
                                               </td>
                                             <td className="p-1">
-                                              {answer.timeSpent && answer.timeSpent > 0 ? formatTime(answer.timeSpent) : 'N/A'}
+                                              {(() => {
+                                                // First try to get timeSpent from the answer itself
+                                                if (answer.timeSpent && answer.timeSpent > 0) {
+                                                  return formatTime(answer.timeSpent)
+                                                }
+                                                
+                                                // Then try to find it in questionTimes array
+                                                const questionTime = testData.questionTimes?.find((qt: any) => 
+                                                  qt.questionId === answer.questionId || qt.questionId === (idx + 1)
+                                                )
+                                                
+                                                if (questionTime && questionTime.timeSpent && questionTime.timeSpent > 0) {
+                                                  return formatTime(questionTime.timeSpent)
+                                                }
+                                                
+                                                return 'N/A'
+                                              })()}
                                             </td>
                                             </tr>
                                           ))}
