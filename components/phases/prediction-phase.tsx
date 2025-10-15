@@ -26,7 +26,7 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<{
-    [key: number]: { selected: number[]; confirmed: boolean; correct: boolean }
+    [key: number]: { selected: number[]; confirmed: boolean; correct: boolean; timeSpent?: number }
   }>({})
   const [starredQuestions, setStarredQuestions] = useState<Set<number>>(new Set())
   const [showInstructions, setShowInstructions] = useState(true)
@@ -184,26 +184,14 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
     const questionId = questions[currentQuestion].id
     const endTime = Date.now()
-    
-    // Record final time for this question
-    if (currentQuestionStartTime !== null) {
-      const timeSpent = endTime - currentQuestionStartTime
-      setQuestionTimes(prev => ({
-        ...prev,
-        [questionId]: {
-          ...prev[questionId],
-          endTime,
-          timeSpent
-        }
-      }))
-    }
+    const timeSpent = currentQuestionStartTime ? endTime - currentQuestionStartTime : 0
     
     // Log interaction
     timeTracker.logInteraction('answer_confirmed', {
       questionId,
       selectedBalls,
       isCorrect,
-      timeSpent: currentQuestionStartTime ? endTime - currentQuestionStartTime : 0,
+      timeSpent,
       timestamp: new Date().toISOString()
     })
     
@@ -213,6 +201,7 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
         selected: selectedBalls,
         confirmed: true,
         correct: isCorrect,
+        timeSpent, // Add timeSpent directly to answer like skills test
       },
     }))
   }
@@ -243,7 +232,7 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
           selected: value.selected,
           confirmed: value.confirmed,
           correct: value.correct,
-          timeSpent: questionTimes[Number(questionId)]?.timeSpent || 0
+          timeSpent: value.timeSpent || questionTimes[Number(questionId)]?.timeSpent || 0
         })),
         questionTimes: Object.entries(questionTimes).map(([questionId, timing]) => ({
           questionId: Number(questionId),

@@ -44,7 +44,7 @@ const strategyQuestions = [
 
 export default function StrategyPhase({ onNext, updateParticipantData, benchmarkData }: StrategyPhaseProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<{ [key: number]: string }>({})
+  const [answers, setAnswers] = useState<{ [key: number]: { text: string; timeSpent?: number } }>({})
   const [showInstructions, setShowInstructions] = useState(true)
   const [isComplete, setIsComplete] = useState(false)
   const timeTracker = useTimeTracker()
@@ -117,11 +117,30 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   const handleAnswerChange = (questionId: number, answer: string) => {
     setAnswers(prev => ({
       ...prev,
-      [questionId]: answer
+      [questionId]: { 
+        text: answer,
+        timeSpent: prev[questionId]?.timeSpent // Keep existing timeSpent if any
+      }
     }))
   }
 
   const nextQuestion = () => {
+    // Record timing for current question before moving
+    if (currentQuestionStartTime !== null) {
+      const endTime = Date.now()
+      const timeSpent = endTime - currentQuestionStartTime
+      const questionId = currentQuestion + 1
+      
+      // Update the answer with timeSpent
+      setAnswers(prev => ({
+        ...prev,
+        [questionId]: {
+          text: prev[questionId]?.text || '',
+          timeSpent
+        }
+      }))
+    }
+    
     if (currentQuestion < strategyQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
     } else {
@@ -130,6 +149,22 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   }
 
   const previousQuestion = () => {
+    // Record timing for current question before moving
+    if (currentQuestionStartTime !== null) {
+      const endTime = Date.now()
+      const timeSpent = endTime - currentQuestionStartTime
+      const questionId = currentQuestion + 1
+      
+      // Update the answer with timeSpent
+      setAnswers(prev => ({
+        ...prev,
+        [questionId]: {
+          text: prev[questionId]?.text || '',
+          timeSpent
+        }
+      }))
+    }
+    
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1)
     }
@@ -137,15 +172,19 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
 
   const completePhase = async () => {
     // Finalize timing for current question if still active
-    const finalQuestionTimes = { ...questionTimes }
+    let finalAnswers = { ...answers }
     if (currentQuestionStartTime !== null) {
-      const currentQuestionId = currentQuestion + 1
       const endTime = Date.now()
       const timeSpent = endTime - currentQuestionStartTime
-      finalQuestionTimes[currentQuestionId] = {
-        ...finalQuestionTimes[currentQuestionId],
-        endTime,
-        timeSpent
+      const questionId = currentQuestion + 1
+      
+      // Update the current answer with final timeSpent
+      finalAnswers = {
+        ...finalAnswers,
+        [questionId]: {
+          text: finalAnswers[questionId]?.text || '',
+          timeSpent
+        }
       }
     }
 
@@ -154,15 +193,13 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
       participantId: localStorage.getItem("participantId"),
       data: {
         completed: true,
-        answers,
-        questionsAnswered: Object.keys(answers).length,
+        answers: finalAnswers,
+        questionsAnswered: Object.keys(finalAnswers).length,
         totalQuestions: strategyQuestions.length,
         timeUsed: timeTracker.getCurrentTime()?.elapsed || 0,
-        questionTimes: Object.entries(finalQuestionTimes).map(([questionId, timing]) => ({
+        questionTimes: Object.entries(finalAnswers).map(([questionId, answer]) => ({
           questionId: Number(questionId),
-          startTime: timing.startTime,
-          endTime: timing.endTime,
-          timeSpent: timing.timeSpent || 0
+          timeSpent: answer.timeSpent || 0
         }))
       }
     }
@@ -241,7 +278,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
 
   if (isComplete) {
     const answeredQuestions = Object.keys(answers).length
-    const totalWords = Object.values(answers).reduce((sum, answer) => sum + wordCount(answer), 0)
+    const totalWords = Object.values(answers).reduce((sum, answer) => sum + wordCount(answer.text || ''), 0)
 
     return (
       <div className="max-w-7xl mx-auto">
@@ -294,7 +331,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   }
 
   const question = strategyQuestions[currentQuestion]
-  const currentAnswer = answers[question.id] || ""
+  const currentAnswer = answers[question.id]?.text || ""
   const currentWordCount = wordCount(currentAnswer)
   const progress = ((currentQuestion + 1) / strategyQuestions.length) * 100
 

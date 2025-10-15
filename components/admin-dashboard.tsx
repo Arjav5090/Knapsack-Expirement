@@ -436,8 +436,24 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                         </thead>
                                         <tbody>
                                         {(() => {
-                                          // Handle strategy phase answers (stored as array containing object)
-                                          if (testName === 'strategy' && Array.isArray(testData.answers) && testData.answers.length > 0 && typeof testData.answers[0] === 'object') {
+                                          // Handle strategy phase answers (new format: object with text and timeSpent)
+                                          if (testName === 'strategy' && testData.answers && typeof testData.answers === 'object' && !Array.isArray(testData.answers)) {
+                                            return Object.entries(testData.answers).map(([questionId, answerData]: [string, any]) => {
+                                              // Handle both old format (string) and new format (object with text and timeSpent)
+                                              const answerText = typeof answerData === 'string' ? answerData : answerData?.text || ''
+                                              const timeSpent = typeof answerData === 'object' && answerData?.timeSpent ? answerData.timeSpent : 0
+                                              
+                                              return {
+                                                questionId: Number(questionId),
+                                                selected: answerText,
+                                                correct: false,
+                                                confirmed: true,
+                                                timeSpent
+                                              }
+                                            })
+                                          }
+                                          // Handle strategy phase answers (old format: stored as array containing object)
+                                          else if (testName === 'strategy' && Array.isArray(testData.answers) && testData.answers.length > 0 && typeof testData.answers[0] === 'object') {
                                             const answersObj = testData.answers[0]
                                             return Object.entries(answersObj).map(([questionId, answerText]) => {
                                               const questionTime = testData.questionTimes?.find((qt: any) => qt.questionId === Number(questionId))

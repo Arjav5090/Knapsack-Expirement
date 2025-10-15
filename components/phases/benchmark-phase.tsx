@@ -27,7 +27,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<{
-    [key: number]: { selected: number[]; confirmed: boolean; correct: boolean }
+    [key: number]: { selected: number[]; confirmed: boolean; correct: boolean; timeSpent?: number }
   }>({})
   const [starredQuestions, setStarredQuestions] = useState<Set<number>>(new Set())
   const [showInstructions, setShowInstructions] = useState(true)
@@ -147,7 +147,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
           selected: a.selected,
           correct: a.correct,
           confirmed: a.confirmed,
-          timeSpent: finalQuestionTimes[Number(questionId)]?.timeSpent || 0
+          timeSpent: a.timeSpent || finalQuestionTimes[Number(questionId)]?.timeSpent || 0
         })),
         questionTimes: Object.entries(finalQuestionTimes).map(([questionId, timing]) => ({
           questionId: Number(questionId),
@@ -245,26 +245,14 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
     const questionId = questions[currentQuestion].id
     const endTime = Date.now()
-    
-    // Record final time for this question
-    if (currentQuestionStartTime !== null) {
-      const timeSpent = endTime - currentQuestionStartTime
-      setQuestionTimes(prev => ({
-        ...prev,
-        [questionId]: {
-          ...prev[questionId],
-          endTime,
-          timeSpent
-        }
-      }))
-    }
+    const timeSpent = currentQuestionStartTime ? endTime - currentQuestionStartTime : 0
     
     // Log interaction
     timeTracker.logInteraction('answer_confirmed', {
       questionId,
       selectedBalls,
       isCorrect,
-      timeSpent: currentQuestionStartTime ? endTime - currentQuestionStartTime : 0,
+      timeSpent,
       timestamp: new Date().toISOString()
     })
     
@@ -274,6 +262,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
         selected: selectedBalls,
         confirmed: true,
         correct: isCorrect,
+        timeSpent, // Add timeSpent directly to answer like skills test
       },
     }))
   }
