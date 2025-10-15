@@ -496,13 +496,31 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                                   return formatTime(answer.timeSpent)
                                                 }
                                                 
-                                                // Then try to find it in questionTimes array
+                                                // Then try to find it in questionTimes array by questionId
                                                 const questionTime = testData.questionTimes?.find((qt: any) => 
-                                                  qt.questionId === answer.questionId || qt.questionId === (idx + 1)
+                                                  qt.questionId === answer.questionId
                                                 )
                                                 
                                                 if (questionTime && questionTime.timeSpent && questionTime.timeSpent > 0) {
                                                   return formatTime(questionTime.timeSpent)
+                                                }
+                                                
+                                                // Try to find by index if questionId doesn't match
+                                                const questionTimeByIndex = testData.questionTimes?.[idx]
+                                                if (questionTimeByIndex && questionTimeByIndex.timeSpent && questionTimeByIndex.timeSpent > 0) {
+                                                  return formatTime(questionTimeByIndex.timeSpent)
+                                                }
+                                                
+                                                // If no timing data found but question was answered, estimate based on average
+                                                if (answer.selected && (Array.isArray(answer.selected) ? answer.selected.length > 0 : answer.selected !== '')) {
+                                                  // Calculate average time from questions that do have timing
+                                                  const questionsWithTime = testData.questionTimes?.filter((qt: any) => qt.timeSpent > 0) || []
+                                                  if (questionsWithTime.length > 0) {
+                                                    const avgTime = questionsWithTime.reduce((sum: number, qt: any) => sum + qt.timeSpent, 0) / questionsWithTime.length
+                                                    return `~${formatTime(avgTime)}`
+                                                  }
+                                                  // Default estimate for answered questions
+                                                  return '~1m 0s'
                                                 }
                                                 
                                                 return 'N/A'
