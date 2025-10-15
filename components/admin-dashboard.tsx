@@ -436,12 +436,29 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                         </thead>
                                         <tbody>
                                         {(() => {
+                                          // Debug logging for strategy answers
+                                          if (testName === 'strategy') {
+                                            console.log('Strategy answers debug:', {
+                                              testName,
+                                              answers: testData.answers,
+                                              answersType: typeof testData.answers,
+                                              isArray: Array.isArray(testData.answers)
+                                            })
+                                          }
+                                          
                                           // Handle strategy phase answers (new format: object with text and timeSpent)
                                           if (testName === 'strategy' && testData.answers && typeof testData.answers === 'object' && !Array.isArray(testData.answers)) {
                                             return Object.entries(testData.answers).map(([questionId, answerData]: [string, any]) => {
                                               // Handle both old format (string) and new format (object with text and timeSpent)
-                                              const answerText = typeof answerData === 'string' ? answerData : answerData?.text || ''
-                                              const timeSpent = typeof answerData === 'object' && answerData?.timeSpent ? answerData.timeSpent : 0
+                                              let answerText = ''
+                                              let timeSpent = 0
+                                              
+                                              if (typeof answerData === 'string') {
+                                                answerText = answerData
+                                              } else if (answerData && typeof answerData === 'object') {
+                                                answerText = answerData.text || ''
+                                                timeSpent = answerData.timeSpent || 0
+                                              }
                                               
                                               return {
                                                 questionId: Number(questionId),
@@ -492,7 +509,9 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                                 ? `[${answer.selected.join(', ')}]`
                                                 : typeof answer.selected === 'string' 
                                                   ? (answer.selected.length > 50 ? `${answer.selected.substring(0, 50)}...` : answer.selected)
-                                                  : answer.selected || 'N/A'
+                                                  : typeof answer.selected === 'object' && answer.selected?.text
+                                                    ? (answer.selected.text.length > 50 ? `${answer.selected.text.substring(0, 50)}...` : answer.selected.text)
+                                                    : String(answer.selected || 'N/A')
                                               }
                                             </td>
                                             <td className="p-1">
