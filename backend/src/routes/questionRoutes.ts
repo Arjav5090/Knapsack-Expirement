@@ -265,7 +265,7 @@ function getQuestionCountForPhase(phase: string): number {
   switch (phase) {
     case 'training':
     case 'practice':
-      return 10; // 3 easy + 4 medium + 3 hard
+      return 6; // 2 easy + 2 medium + 2 hard (hardcoded practice questions)
     case 'benchmark':
     case 'skill':
     case 'strategy':
@@ -274,7 +274,7 @@ function getQuestionCountForPhase(phase: string): number {
     case 'final':
       return 15; // 5 easy + 5 medium + 5 hard
     default:
-      return 10; // Default fallback
+      return 6; // Default fallback to practice
   }
 }
 

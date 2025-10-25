@@ -468,6 +468,105 @@ function getStaticQuestionsForPhase(
 }
 
 /**
+ * Loads hardcoded practice questions
+ */
+function loadPracticeQuestions(): Question[] {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const practiceQuestionsPath = path.join(__dirname, '../../../lib/practice-questions.ts');
+    
+    // For now, return hardcoded practice questions directly
+    // In a real implementation, you might want to load from a JSON file
+    const practiceQuestions = [
+      {
+        id: 1,
+        capacity: 8,
+        balls: [
+          { id: 1, weight: 3, reward: 12, color: "bg-red-500" },
+          { id: 2, weight: 4, reward: 10, color: "bg-blue-500" },
+          { id: 3, weight: 2, reward: 8, color: "bg-green-500" }
+        ],
+        solution: [1, 3],
+        explanation: "Select items 1 and 3 for total weight 5 and reward 20, staying within capacity 8.",
+        difficulty: "easy"
+      },
+      {
+        id: 2,
+        capacity: 10,
+        balls: [
+          { id: 1, weight: 4, reward: 15, color: "bg-yellow-500" },
+          { id: 2, weight: 3, reward: 12, color: "bg-purple-500" },
+          { id: 3, weight: 5, reward: 18, color: "bg-pink-500" }
+        ],
+        solution: [1, 2],
+        explanation: "Select items 1 and 2 for total weight 7 and reward 27, staying within capacity 10.",
+        difficulty: "easy"
+      },
+      {
+        id: 3,
+        capacity: 12,
+        balls: [
+          { id: 1, weight: 4, reward: 16, color: "bg-indigo-500" },
+          { id: 2, weight: 3, reward: 12, color: "bg-orange-500" },
+          { id: 3, weight: 5, reward: 20, color: "bg-teal-500" },
+          { id: 4, weight: 2, reward: 8, color: "bg-rose-500" }
+        ],
+        solution: [1, 3, 4],
+        explanation: "Select items 1, 3, and 4 for total weight 11 and reward 44, staying within capacity 12.",
+        difficulty: "medium"
+      },
+      {
+        id: 4,
+        capacity: 15,
+        balls: [
+          { id: 1, weight: 5, reward: 20, color: "bg-cyan-500" },
+          { id: 2, weight: 3, reward: 15, color: "bg-lime-500" },
+          { id: 3, weight: 4, reward: 18, color: "bg-amber-500" },
+          { id: 4, weight: 6, reward: 22, color: "bg-emerald-500" }
+        ],
+        solution: [2, 3, 4],
+        explanation: "Select items 2, 3, and 4 for total weight 13 and reward 55, staying within capacity 15.",
+        difficulty: "medium"
+      },
+      {
+        id: 5,
+        capacity: 18,
+        balls: [
+          { id: 1, weight: 6, reward: 24, color: "bg-violet-500" },
+          { id: 2, weight: 4, reward: 18, color: "bg-sky-500" },
+          { id: 3, weight: 5, reward: 22, color: "bg-stone-500" },
+          { id: 4, weight: 3, reward: 15, color: "bg-slate-500" },
+          { id: 5, weight: 7, reward: 28, color: "bg-gray-500" }
+        ],
+        solution: [2, 3, 4, 5],
+        explanation: "Select items 2, 3, 4, and 5 for total weight 16 and reward 65, staying within capacity 18.",
+        difficulty: "hard"
+      },
+      {
+        id: 6,
+        capacity: 20,
+        balls: [
+          { id: 1, weight: 7, reward: 28, color: "bg-zinc-500" },
+          { id: 2, weight: 4, reward: 20, color: "bg-red-600" },
+          { id: 3, weight: 5, reward: 25, color: "bg-blue-600" },
+          { id: 4, weight: 3, reward: 18, color: "bg-green-600" },
+          { id: 5, weight: 6, reward: 30, color: "bg-yellow-600" }
+        ],
+        solution: [2, 3, 4, 5],
+        explanation: "Select items 2, 3, 4, and 5 for total weight 18 and reward 93, staying within capacity 20.",
+        difficulty: "hard"
+      }
+    ];
+    
+    return practiceQuestions;
+  } catch (error) {
+    console.error('Failed to load practice questions:', error);
+    return [];
+  }
+}
+
+/**
  * Generates questions for different phases using static questions
  */
 export function generatePhaseQuestions(
@@ -475,15 +574,44 @@ export function generatePhaseQuestions(
   count: number,
   seed: number
 ): { questions: Question[]; config: GeneratorConfig; analysisStats: any } {
+  // Handle practice phase separately with hardcoded questions
+  if (phase === 'training') {
+    const practiceQuestions = loadPracticeQuestions();
+    
+    const counts = { easy: 0, medium: 0, hard: 0 };
+    practiceQuestions.forEach(q => {
+      if (q.difficulty === 'easy') counts.easy++;
+      else if (q.difficulty === 'medium') counts.medium++;
+      else if (q.difficulty === 'hard') counts.hard++;
+    });
+    
+    const analysisStats = {
+      easyCount: counts.easy,
+      mediumCount: counts.medium,
+      hardCount: counts.hard,
+      averageDominance: 0,
+      averageSlackRatio: 0,
+      averageOptimalityGap: 0
+    };
+    
+    return {
+      questions: practiceQuestions,
+      config: { 
+        numItems: 0, 
+        minWeight: 0, 
+        maxWeight: 0, 
+        minReward: 0, 
+        maxReward: 0, 
+        difficultyLevel: 'mixed' as any 
+      },
+      analysisStats
+    };
+  }
+  
+  // Handle other phases with static questions
   let easyCount: number, mediumCount: number, hardCount: number;
   
   switch (phase) {
-    case 'training':
-      // Skill test: 3 easy + 4 medium + 3 hard = 10 total
-      easyCount = 3;
-      mediumCount = 4;
-      hardCount = 3;
-      break;
     case 'benchmark':
       // Benchmark test: 5 easy + 5 medium + 5 hard = 15 total
       easyCount = 5;
@@ -496,6 +624,9 @@ export function generatePhaseQuestions(
       mediumCount = 5;
       hardCount = 5;
       break;
+    default:
+      // Fallback to practice questions
+      return generatePhaseQuestions('training', 6, seed);
   }
   
   const questions = getStaticQuestionsForPhase(phase, easyCount, mediumCount, hardCount);

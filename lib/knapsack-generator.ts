@@ -397,6 +397,29 @@ export function generateQuestionSet(
 }
 
 /**
+ * Generates practice questions (hardcoded 6 questions)
+ */
+export function generatePracticeQuestions(): Question[] {
+  const { getPracticeQuestions } = require('./static-question-loader')
+  const practiceQuestions = getPracticeQuestions()
+  
+  return practiceQuestions.map((q: any, index: number) => ({
+    id: index + 1,
+    capacity: q.capacity,
+    balls: q.balls,
+    solution: q.solution,
+    explanation: q.explanation,
+    difficulty: q.difficulty,
+    metadata: {
+      dominanceCount: 0,
+      slackRatio: 0,
+      optimalityGap: 0,
+      densityVariance: 0
+    }
+  }))
+}
+
+/**
  * Pre-defined configurations for different phases
  */
 export const PHASE_CONFIGS = {
