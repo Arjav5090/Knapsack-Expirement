@@ -1,7 +1,7 @@
 /**
  * Knapsack Question Generator
- * Generates dynamic 0-1 knapsack problems with controlled difficulty based on dominance relationships
- * Based on academic specifications for behavioral experiment measurement
+ * Now uses static questions from static-questions.json instead of dynamic generation
+ * Maintains backward compatibility with existing interfaces
  */
 
 export interface Ball {
@@ -367,42 +367,33 @@ export function generateKnapsackQuestion(
 }
 
 /**
- * Generates a set of questions with varying difficulty levels
+ * Generates a set of questions using static questions from JSON
  */
 export function generateQuestionSet(
   count: number,
   baseConfig: Partial<GeneratorConfig> = {}
 ): Question[] {
-  const questions: Question[] = []
-  const difficulties: Array<'easy' | 'medium' | 'hard'> = ['easy', 'medium', 'hard']
+  // Import static question loader
+  const { getSkillTestQuestions, getBenchmarkTestQuestions, getFinalTestQuestions, getPracticeQuestions } = require('./static-question-loader')
   
-  for (let i = 0; i < count; i++) {
-    const difficulty = difficulties[i % difficulties.length]
-    
-    const config: GeneratorConfig = {
-      numItems: 4 + Math.floor(i / 3), // Gradually increase item count
-      minWeight: 3,
-      maxWeight: 15,
-      minReward: 9,
-      maxReward: 45,
-      difficultyLevel: difficulty,
-      ensureUniqueSolution: true,
-      ...baseConfig
-    }
-    
-    try {
-      const question = generateKnapsackQuestion(i + 1, config)
-      questions.push(question)
-    } catch (error) {
-      console.warn(`Failed to generate question ${i + 1}:`, error)
-      // Fallback with simpler config
-      const simpleConfig = { ...config, ensureUniqueSolution: false }
-      const question = generateKnapsackQuestion(i + 1, simpleConfig)
-      questions.push(question)
-    }
-  }
+  // Determine which question set to use based on context
+  // This is a simplified approach - in practice, you'd pass the phase as a parameter
+  let staticQuestions: any[] = []
   
-  return questions
+  // For now, default to skill test questions (training phase)
+  // In practice, you'd determine this based on the current phase
+  staticQuestions = getSkillTestQuestions()
+  
+  // Convert static questions to the expected format
+  return staticQuestions.slice(0, count).map((q, index) => ({
+    id: index + 1,
+    capacity: q.capacity,
+    balls: q.balls,
+    solution: q.solution,
+    explanation: q.explanation,
+    difficulty: q.difficulty,
+    metadata: q.metadata
+  }))
 }
 
 /**

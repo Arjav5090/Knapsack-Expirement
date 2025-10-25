@@ -37,15 +37,16 @@ questionRouter.post('/api/v1/questions/generate', async (req, res) => {
     // Generate a deterministic seed if not provided
     const generationSeed = seed ?? Date.now() + participantId.charCodeAt(0);
     
-    console.log(`[Question Generation] Generating ${count} questions for participant ${participantId}, phase ${phase}, seed ${generationSeed}`);
-
-    // Map phase names to generator phase names
+    // Map phase names to generator phase names and get correct question count
     const generatorPhase = mapPhaseToGenerator(phase);
+    const questionCount = getQuestionCountForPhase(phase);
     
-    // Generate questions using the sophisticated generator
+    console.log(`[Question Generation] Generating ${questionCount} questions for participant ${participantId}, phase ${phase}, seed ${generationSeed}`);
+
+    // Generate questions using static questions
     const { questions, config, analysisStats } = generatePhaseQuestions(
       generatorPhase,
-      count,
+      questionCount,
       generationSeed
     );
 
@@ -254,6 +255,26 @@ function mapPhaseToGenerator(phase: string): 'training' | 'benchmark' | 'predict
       return 'prediction';
     default:
       return 'training'; // Default fallback
+  }
+}
+
+/**
+ * Helper function to get the correct question count for each phase
+ */
+function getQuestionCountForPhase(phase: string): number {
+  switch (phase) {
+    case 'training':
+    case 'practice':
+      return 10; // 3 easy + 4 medium + 3 hard
+    case 'benchmark':
+    case 'skill':
+    case 'strategy':
+      return 15; // 5 easy + 5 medium + 5 hard
+    case 'prediction':
+    case 'final':
+      return 15; // 5 easy + 5 medium + 5 hard
+    default:
+      return 10; // Default fallback
   }
 }
 

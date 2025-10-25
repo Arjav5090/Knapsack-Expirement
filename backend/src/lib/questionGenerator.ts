@@ -1,6 +1,7 @@
 /**
  * Backend question generation utilities
- * Provides server-side question generation with seeding for reproducibility
+ * Now uses static questions from static-questions.json instead of dynamic generation
+ * Maintains backward compatibility with existing interfaces
  */
 
 // Define types that match frontend (simplified for backend)
@@ -423,74 +424,81 @@ export const PHASE_CONFIGS = {
 } as const;
 
 /**
- * Generates questions for different phases with seeded randomness
+ * Loads static questions from JSON file
+ */
+function loadStaticQuestions() {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const staticQuestionsPath = path.join(__dirname, '../../../lib/static-questions.json');
+    const staticQuestions = JSON.parse(fs.readFileSync(staticQuestionsPath, 'utf8'));
+    return staticQuestions.questions;
+  } catch (error) {
+    console.error('Failed to load static questions:', error);
+    return [];
+  }
+}
+
+/**
+ * Gets questions for a specific phase and difficulty distribution
+ */
+function getStaticQuestionsForPhase(
+  phase: 'training' | 'benchmark' | 'prediction',
+  easyCount: number,
+  mediumCount: number,
+  hardCount: number
+): Question[] {
+  const allQuestions = loadStaticQuestions();
+  const phaseQuestions = allQuestions.filter((q: any) => q.phase === phase);
+  
+  const easyQuestions = phaseQuestions.filter((q: any) => q.difficulty === 'easy');
+  const mediumQuestions = phaseQuestions.filter((q: any) => q.difficulty === 'medium');
+  const hardQuestions = phaseQuestions.filter((q: any) => q.difficulty === 'hard');
+  
+  // Shuffle and select the required number
+  const shuffledEasy = [...easyQuestions].sort(() => Math.random() - 0.5);
+  const shuffledMedium = [...mediumQuestions].sort(() => Math.random() - 0.5);
+  const shuffledHard = [...hardQuestions].sort(() => Math.random() - 0.5);
+  
+  return [
+    ...shuffledEasy.slice(0, easyCount),
+    ...shuffledMedium.slice(0, mediumCount),
+    ...shuffledHard.slice(0, hardCount)
+  ];
+}
+
+/**
+ * Generates questions for different phases using static questions
  */
 export function generatePhaseQuestions(
   phase: 'training' | 'benchmark' | 'prediction',
   count: number,
   seed: number
 ): { questions: Question[]; config: GeneratorConfig; analysisStats: any } {
-  const difficulties: Array<'easy' | 'medium' | 'hard'> = ['easy', 'medium', 'hard'];
-  const questions: Question[] = [];
-  
-  let baseConfig: any;
-  let difficultyPattern: string[];
+  let easyCount: number, mediumCount: number, hardCount: number;
   
   switch (phase) {
     case 'training':
-      baseConfig = PHASE_CONFIGS.training;
-      // Vary between easy and some medium for practice variety
-      difficultyPattern = [];
-      for (let i = 0; i < count; i++) {
-        // 70% easy, 30% medium for practice
-        difficultyPattern.push(i < Math.ceil(count * 0.7) ? 'easy' : 'medium');
-      }
+      // Skill test: 3 easy + 4 medium + 3 hard = 10 total
+      easyCount = 3;
+      mediumCount = 4;
+      hardCount = 3;
       break;
     case 'benchmark':
-      baseConfig = PHASE_CONFIGS.benchmark;
-      // Mixed difficulty for benchmark
-      difficultyPattern = [];
-      for (let i = 0; i < count; i++) {
-        difficultyPattern.push(difficulties[i % difficulties.length]);
-      }
+      // Benchmark test: 5 easy + 5 medium + 5 hard = 15 total
+      easyCount = 5;
+      mediumCount = 5;
+      hardCount = 5;
       break;
     case 'prediction':
-      baseConfig = PHASE_CONFIGS.prediction;
-      // Descending difficulty for prediction
-      const hardCount = Math.ceil(count * 0.4);
-      const mediumCount = Math.ceil(count * 0.3);
-      const easyCount = count - hardCount - mediumCount;
-      difficultyPattern = [
-        ...Array(hardCount).fill('hard'),
-        ...Array(mediumCount).fill('medium'),
-        ...Array(easyCount).fill('easy')
-      ];
+      // Final test: 5 easy + 5 medium + 5 hard = 15 total
+      easyCount = 5;
+      mediumCount = 5;
+      hardCount = 5;
       break;
   }
   
-  for (let i = 0; i < count; i++) {
-    const difficulty = difficultyPattern[i] as 'easy' | 'medium' | 'hard';
-    const config: GeneratorConfig = {
-      ...baseConfig,
-      difficultyLevel: difficulty,
-      numItems: difficulty === 'easy' ? 3 : difficulty === 'medium' ? 4 : 5
-    };
-    
-    // Use a unique seed for each question to ensure variety
-    const questionSeed = seed + (i * 1000) + Math.floor(seed / 1000);
-    
-    try {
-      const question = generateKnapsackQuestion(i + 1, config, questionSeed);
-      questions.push(question);
-    } catch (error) {
-      console.warn(`Failed to generate question ${i + 1}, using fallback`);
-      // Fallback with simpler config and different seed
-      const simpleConfig = { ...config, ensureUniqueSolution: false };
-      const fallbackSeed = questionSeed + 500;
-      const question = generateKnapsackQuestion(i + 1, simpleConfig, fallbackSeed);
-      questions.push(question);
-    }
-  }
+  const questions = getStaticQuestionsForPhase(phase, easyCount, mediumCount, hardCount);
   
   // Calculate analysis stats
   const counts = { easy: 0, medium: 0, hard: 0 };
@@ -521,7 +529,14 @@ export function generatePhaseQuestions(
   
   return {
     questions,
-    config: { ...baseConfig, difficultyLevel: 'mixed' as any },
+    config: { 
+      numItems: 0, 
+      minWeight: 0, 
+      maxWeight: 0, 
+      minReward: 0, 
+      maxReward: 0, 
+      difficultyLevel: 'mixed' as any 
+    },
     analysisStats
   };
 }
