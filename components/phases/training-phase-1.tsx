@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Target, CheckCircle, XCircle, AlertTriangle, Zap } from "lucide-react"
+import { Target, CheckCircle, XCircle, Zap } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
 import { getOrGenerateQuestions } from "@/lib/api"
@@ -372,12 +372,6 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
   if (showInstructions) {
     return (
       <div className="max-w-7xl mx-auto">
-        {!pid && (
-          <div className="mb-4 flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 rounded p-3">
-            <AlertTriangle className="h-4 w-4" />
-            <span>No participant ID yet. Make sure the page registered a participant on load.</span>
-          </div>
-        )}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -534,7 +528,6 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
             </span>
             <div className="flex items-center gap-2">
               <Badge variant="outline">No Time Limit</Badge>
-              {pid && <Badge variant="outline">PID: {pid.slice(0, 8)}…</Badge>}
             </div>
           </div>
           <Progress value={progress} className="h-2" />

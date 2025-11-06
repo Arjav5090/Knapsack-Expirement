@@ -77,17 +77,17 @@ export function getSkillTestQuestions(): StaticQuestion[] {
 }
 
 /**
- * Get questions for Benchmark Test: 5 easy + 5 medium + 5 hard = 15 total
+ * Get questions for Benchmark Test: 10 easy + 10 medium + 10 hard = 30 total
  */
 export function getBenchmarkTestQuestions(): StaticQuestion[] {
-  return getQuestionSet('benchmark', 5, 5, 5);
+  return getQuestionSet('benchmark', 10, 10, 10);
 }
 
 /**
- * Get questions for Final Test (Prediction): 5 easy + 5 medium + 5 hard = 15 total
+ * Get questions for Final Test (Prediction): 10 easy + 10 medium + 10 hard = 30 total
  */
 export function getFinalTestQuestions(): StaticQuestion[] {
-  return getQuestionSet('prediction', 5, 5, 5);
+  return getQuestionSet('prediction', 10, 10, 10);
 }
 
 /**

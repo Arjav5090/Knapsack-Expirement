@@ -250,17 +250,27 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     hasCompleted.current = true
     setIsComplete(true)
 
-    const correctAnswers = answers.filter((a) => a.correct).length
-    const performanceScore = correctAnswers
+    // Calculate points using new scheme: 2 points for correct, 1 for unanswered, 0 for incorrect
+    const correctCount = answers.filter((a) => a.correct).length
+    const incorrectCount = answers.filter((a) => a.selected.length > 0 && !a.correct).length
+    const unansweredCount = skillsQuestions.length - correctCount - incorrectCount
+    
+    // Calculate total points: 2 points per correct, 1 point per unanswered, 0 per incorrect
+    const totalPoints = (correctCount * 2) + (unansweredCount * 1) + (incorrectCount * 0)
+    const maxPoints = skillsQuestions.length * 2 // 10 questions × 2 = 20 max points
 
     const payload = {
       phase: "skill",
       participantId: localStorage.getItem("participantId"),
       data: {
         completed: true,
-        correctAnswers,
+        correctAnswers: correctCount,
+        incorrectAnswers: incorrectCount,
+        unansweredQuestions: unansweredCount,
+        totalPoints,
+        maxPoints,
         totalQuestions: skillsQuestions.length,
-        accuracy: correctAnswers / skillsQuestions.length,
+        accuracy: correctCount / skillsQuestions.length,
         timeUsed: 15 * 60 - totalTimeLeft,
         answers,
         questionTimes: answers.map(answer => ({
@@ -282,7 +292,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
 
       if (!res.ok) throw new Error("Failed to submit test data")
       console.log("[Test 1] Submission successful ✅")
-      updateParticipantData({ training2: payload.data, totalScore: performanceScore })
+      updateParticipantData({ training2: payload.data, totalScore: totalPoints })
     } catch (err) {
       console.error("[Test 1] Submission failed ❌", err)
       alert("There was an error submitting your test results.")
@@ -392,7 +402,10 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
     const correctAnswers = answers.filter((a) => a.correct).length
     const unansweredQuestions = answers.filter((a) => a.selected.length === 0).length
     const incorrectAnswers = answers.filter((a) => a.selected.length > 0 && !a.correct).length
-    const performanceScore = correctAnswers
+    
+    // Calculate points: 2 points per correct, 1 point per unanswered, 0 per incorrect
+    const totalPoints = (correctAnswers * 2) + (unansweredQuestions * 1) + (incorrectAnswers * 0)
+    const maxPoints = skillsQuestions.length * 2 // 20 max points
 
     return (
       <div className="max-w-7xl mx-auto">
@@ -426,16 +439,18 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
                   </div>
 
                   <div className="bg-white p-4 rounded-lg shadow-sm border-2 border-blue-500">
-                    <div className="text-3xl font-bold text-blue-600">{performanceScore}</div>
-                    <div className="text-sm text-gray-600">Probability Points Earned</div>
+                    <div className="text-3xl font-bold text-blue-600">{totalPoints}/{maxPoints}</div>
+                    <div className="text-sm text-gray-600">Points Earned</div>
                   </div>
                 </div>
 
                 <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 mb-6">
                   <p className="text-blue-800 font-medium">
-                    You earned <strong>{performanceScore}</strong> probability points!
+                    You earned <strong>{totalPoints} out of {maxPoints}</strong> points!
                   </p>
-                  <p className="text-blue-700 text-sm mt-1">Great job completing Test 1!</p>
+                  <p className="text-blue-700 text-sm mt-2">
+                    Scoring: 2 points per correct answer, 1 point per unanswered question, 0 points per incorrect answer.
+                  </p>
                 </div>
 
                 <Button onClick={onNext} size="lg">

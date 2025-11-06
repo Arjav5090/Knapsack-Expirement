@@ -116,9 +116,13 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     setIsComplete(true)
   
     const correctAnswers = Object.values(answers).filter((a) => a.confirmed && a.correct).length
+    const incorrectAnswers = Object.values(answers).filter((a) => a.confirmed && !a.correct).length
     const confirmedAnswers = Object.values(answers).filter((a) => a.confirmed).length
     const unansweredQuestions = questions.length - confirmedAnswers
-    const performanceScore = correctAnswers
+    
+    // Calculate points: 2 points per correct, 1 point per unanswered, 0 per incorrect
+    const totalPoints = (correctAnswers * 2) + (unansweredQuestions * 1) + (incorrectAnswers * 0)
+    const maxPoints = questions.length * 2 // 30 questions × 2 = 60 max points
   
     // Finalize timing for current question if still active
     const finalQuestionTimes = { ...questionTimes }
@@ -139,6 +143,10 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
       data: {
         completed: true,
         correctAnswers,
+        incorrectAnswers,
+        unansweredQuestions,
+        totalPoints,
+        maxPoints,
         totalQuestions: questions.length,
         accuracy: correctAnswers / questions.length,
         timeUsed: timeTracker.getCurrentTime()?.elapsed || 0,
@@ -172,7 +180,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
       console.log("[Benchmark Test] Submission successful ✅")
       updateParticipantData({
         benchmark: payload.data,
-        totalScore: performanceScore,
+        totalScore: totalPoints,
       })
   
       onNext()
@@ -182,7 +190,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
       console.log("[Benchmark Test] Backend unavailable, proceeding with local data only")
       updateParticipantData({
         benchmark: payload.data,
-        totalScore: performanceScore,
+        totalScore: totalPoints,
       })
       onNext()
     }

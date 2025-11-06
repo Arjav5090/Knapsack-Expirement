@@ -129,11 +129,11 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
         
         console.log("[Final Test] Loading dynamic questions for participant:", participantId)
         
-        // Load prediction questions (15 questions, descending difficulty)
+        // Load prediction questions (30 questions, descending difficulty)
         const generatedQuestions = await getOrGenerateQuestions({
           participantId,
           phase: 'final',
-          count: 15
+          count: 30
         })
         
         console.log("[Final Test] Loaded questions:", generatedQuestions)
@@ -146,7 +146,7 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
         // Fallback to local question generation
         console.log("[Final Test] Falling back to local question generation")
         try {
-          const localQuestions = createPhaseQuestions('prediction', 15)
+          const localQuestions = createPhaseQuestions('prediction', 30)
           console.log("[Final Test] Generated local questions:", localQuestions)
           setQuestions(localQuestions)
           setQuestionLoadError(null) // Clear error since we have fallback questions
@@ -214,9 +214,13 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
     setIsComplete(true)
   
     const correctAnswers = Object.values(answers).filter((a) => a.confirmed && a.correct).length
+    const incorrectAnswers = Object.values(answers).filter((a) => a.confirmed && !a.correct).length
     const confirmedAnswers = Object.values(answers).filter((a) => a.confirmed).length
     const unansweredQuestions = questions.length - confirmedAnswers
-    const performanceScore = correctAnswers
+    
+    // Calculate points: 2 points per correct, 1 point per unanswered, 0 per incorrect
+    const totalPoints = (correctAnswers * 2) + (unansweredQuestions * 1) + (incorrectAnswers * 0)
+    const maxPoints = questions.length * 2 // 30 questions × 2 = 60 max points
   
     const payload = {
       participantId,
@@ -224,8 +228,11 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
       data: {
         completed: true,
         correctAnswers,
+        incorrectAnswers,
+        unansweredQuestions,
+        totalPoints,
+        maxPoints,
         totalQuestions: questions.length,
-        performanceScore,
         timeUsed: 20 * 60 - timeLeft,
         answers: Object.entries(answers).map(([questionId, value]) => ({
           questionId: Number(questionId),
@@ -329,7 +336,7 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
               </p>
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-                <span>Generating 15 questions with academic rigor</span>
+                <span>Generating 30 questions with academic rigor</span>
               </div>
               {questionLoadError && (
                 <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -419,7 +426,10 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
     const confirmedAnswers = Object.values(answers).filter((a) => a.confirmed).length
     const unansweredQuestions = questions.length - confirmedAnswers
     const incorrectAnswers = Object.values(answers).filter((a) => a.confirmed && !a.correct).length
-    const performanceScore = correctAnswers
+    
+    // Calculate points: 2 points per correct, 1 point per unanswered, 0 per incorrect
+    const totalPoints = (correctAnswers * 2) + (unansweredQuestions * 1) + (incorrectAnswers * 0)
+    const maxPoints = questions.length * 2 // 60 max points
 
     return (
       <div className="max-w-7xl mx-auto">
@@ -453,14 +463,17 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
                   </div>
 
                   <div className="bg-white p-4 rounded-lg shadow-sm border-2 border-teal-500">
-                                    <div className="text-3xl font-bold text-teal-600">{performanceScore}</div>
-                <div className="text-sm text-gray-600">Performance Score</div>
+                    <div className="text-3xl font-bold text-teal-600">{totalPoints}/{maxPoints}</div>
+                    <div className="text-sm text-gray-600">Points Earned</div>
                   </div>
                 </div>
 
                 <div className="bg-teal-100 border border-teal-300 rounded-lg p-4 mb-6">
                   <p className="text-teal-800 font-medium">
-                    You completed the test with a performance score of <strong>{performanceScore}</strong>!
+                    You completed the test with <strong>{totalPoints} out of {maxPoints}</strong> points!
+                  </p>
+                  <p className="text-teal-700 text-sm mt-2">
+                    Scoring: 2 points per correct answer, 1 point per unanswered question, 0 points per incorrect answer.
                   </p>
                   <p className="text-teal-700 text-sm mt-1">
                     Thank you for participating in this study.
@@ -498,20 +511,25 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Top Section with Finish Button */}
-      <div className="mb-6 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-bold text-gray-900">Final Test</h2>
-          <div className={`px-3 py-2 rounded-lg text-lg font-mono font-bold ${
-            timeLeft <= 300 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-          }`}>
-            {formatTime(timeLeft)}
+      {/* Top Section with Timer and Finish Button */}
+      <Card className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-2xl font-bold text-gray-900">Final Test</h2>
+              <div className={`px-4 py-3 rounded-xl text-xl font-mono font-bold shadow-lg flex items-center space-x-2 ${
+                timeLeft <= 300 ? "bg-red-500 text-white animate-pulse" : timeLeft <= 600 ? "bg-orange-500 text-white" : "bg-blue-500 text-white"
+              }`}>
+                <Clock className="h-5 w-5" />
+                <span>{formatTime(timeLeft)}</span>
+              </div>
+            </div>
+            <Button onClick={() => setShowFinishWarning(true)} variant="outline" className="bg-red-50 hover:bg-red-100 border-red-200">
+              Finish Test Early
+            </Button>
           </div>
-        </div>
-        <Button onClick={() => setShowFinishWarning(true)} variant="outline" className="bg-red-50 hover:bg-red-100 border-red-200">
-          Finish Test Early
-        </Button>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Top Navigation Panel */}
       <Card className="mb-6">

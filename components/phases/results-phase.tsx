@@ -58,11 +58,26 @@ export default function ResultsPhase({ onNext, participantData }: ResultsPhasePr
 
   // Calculate total performance
   const training1 = participantData.training1 || { correctAnswers: 0, totalQuestions: 6, accuracy: 0 }
-  const training2 = participantData.training2 || { correctAnswers: 0, totalQuestions: 10, totalPoints: 0 }
-  const benchmark = participantData.benchmark || { correctAnswers: 0, totalQuestions: 30, totalPoints: 0 }
-  const prediction = participantData.prediction || { correctAnswers: 0, totalQuestions: 30, totalPoints: 0 }
+  const training2 = participantData.training2 || { correctAnswers: 0, totalQuestions: 10, totalPoints: 0, maxPoints: 20 }
+  const benchmark = participantData.benchmark || { correctAnswers: 0, totalQuestions: 30, totalPoints: 0, maxPoints: 60 }
+  // Handle both 'prediction' and 'final' phase names
+  const prediction = participantData.prediction || participantData.final || { correctAnswers: 0, totalQuestions: 30, totalPoints: 0, maxPoints: 60 }
 
-  const totalPoints = participantData.totalPoints || 0
+  // Calculate overall performance using only ONE of benchmark OR final test
+  // Priority: Use final test if available, otherwise use benchmark test
+  const hasFinalTest = (prediction.totalPoints !== undefined && prediction.totalPoints !== null) || 
+                       (prediction.correctAnswers > 0)
+  const hasBenchmarkTest = (benchmark.totalPoints !== undefined && benchmark.totalPoints !== null) || 
+                           (benchmark.correctAnswers > 0)
+  
+  // Determine which test to use for overall performance
+  const testForOverall = hasFinalTest ? prediction : benchmark
+  const testNameForOverall = hasFinalTest ? "Final Test" : "Benchmark Test"
+  
+  // Overall performance = Skills Assessment + (Benchmark OR Final Test)
+  const totalPoints = (training2.totalPoints || 0) + (testForOverall.totalPoints || 0)
+  const maxTotalPoints = (training2.maxPoints || 20) + (testForOverall.maxPoints || 60)
+  const overallPercentage = maxTotalPoints > 0 ? (totalPoints / maxTotalPoints) * 100 : 0
 
 
 
@@ -124,9 +139,11 @@ export default function ResultsPhase({ onNext, participantData }: ResultsPhasePr
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Points Earned:</span>
-                <span className="font-semibold text-orange-600">{training2.totalPoints}</span>
+                <span className="font-semibold text-orange-600">
+                  {training2.totalPoints || 0}/{training2.maxPoints || 20}
+                </span>
               </div>
-              <Progress value={(training2.correctAnswers / training2.totalQuestions) * 100} className="h-2" />
+              <Progress value={((training2.totalPoints || 0) / (training2.maxPoints || 20)) * 100} className="h-2" />
             </div>
           </CardContent>
         </Card>
@@ -149,9 +166,11 @@ export default function ResultsPhase({ onNext, participantData }: ResultsPhasePr
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Points Earned:</span>
-                <span className="font-semibold text-purple-600">{benchmark.totalPoints}</span>
+                <span className="font-semibold text-purple-600">
+                  {benchmark.totalPoints || 0}/{benchmark.maxPoints || 60}
+                </span>
               </div>
-              <Progress value={(benchmark.correctAnswers / benchmark.totalQuestions) * 100} className="h-2" />
+              <Progress value={((benchmark.totalPoints || 0) / (benchmark.maxPoints || 60)) * 100} className="h-2" />
             </div>
           </CardContent>
         </Card>
@@ -174,9 +193,11 @@ export default function ResultsPhase({ onNext, participantData }: ResultsPhasePr
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Points Earned:</span>
-                <span className="font-semibold text-red-600">{prediction.totalPoints}</span>
+                <span className="font-semibold text-red-600">
+                  {prediction.totalPoints || 0}/{prediction.maxPoints || 60}
+                </span>
               </div>
-              <Progress value={(prediction.correctAnswers / prediction.totalQuestions) * 100} className="h-2" />
+              <Progress value={((prediction.totalPoints || 0) / (prediction.maxPoints || 60)) * 100} className="h-2" />
             </div>
           </CardContent>
         </Card>
@@ -190,13 +211,36 @@ export default function ResultsPhase({ onNext, participantData }: ResultsPhasePr
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Total Points:</span>
-                <span className="font-bold text-2xl text-blue-600">{totalPoints}</span>
+                <span className="font-bold text-2xl text-blue-600">{totalPoints}/{maxTotalPoints}</span>
               </div>
+              <Progress value={overallPercentage} className="h-3" />
               <div className="text-center">
-                <Badge className="bg-blue-600 text-white">Excellent Performance!</Badge>
+                <Badge className="bg-blue-600 text-white">
+                  {overallPercentage >= 80 ? "Excellent Performance!" : 
+                   overallPercentage >= 60 ? "Good Performance!" : 
+                   overallPercentage >= 40 ? "Fair Performance" : "Keep Practicing!"}
+                </Badge>
+              </div>
+              
+              {/* Written Explanation */}
+              <div className="mt-4 pt-4 border-t border-blue-200">
+                <div className="bg-white rounded-lg p-4 space-y-2">
+                  <h4 className="font-semibold text-sm text-gray-800 mb-2">How Overall Performance is Calculated:</h4>
+                  <p className="text-xs text-gray-700 leading-relaxed">
+                    Your overall performance score is calculated by combining your <strong>Skills Assessment</strong> points 
+                    ({training2.totalPoints || 0} out of {training2.maxPoints || 20} points) with your <strong>{testNameForOverall}</strong> points 
+                    ({testForOverall.totalPoints || 0} out of {testForOverall.maxPoints || 60} points). 
+                    This gives you a total of <strong>{totalPoints} out of {maxTotalPoints} points</strong>, 
+                    representing <strong>{overallPercentage.toFixed(1)}%</strong> of the maximum possible score.
+                  </p>
+                  <p className="text-xs text-gray-600 mt-2 italic">
+                    Note: Overall performance uses only one main assessment test ({testNameForOverall}) in combination with your Skills Assessment, 
+                    ensuring a balanced evaluation of your problem-solving abilities.
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>

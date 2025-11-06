@@ -269,10 +269,10 @@ function getQuestionCountForPhase(phase: string): number {
     case 'benchmark':
     case 'skill':
     case 'strategy':
-      return 15; // 5 easy + 5 medium + 5 hard
+      return 30; // 10 easy + 10 medium + 10 hard
     case 'prediction':
     case 'final':
-      return 15; // 5 easy + 5 medium + 5 hard
+      return 30; // 10 easy + 10 medium + 10 hard
     default:
       return 6; // Default fallback to practice
   }

@@ -1,82 +1,30 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo, useCallback, Suspense, lazy } from "react"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { Gift, Trophy, Clock, Target, Brain } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { api } from "@/lib/api-client"
 
-// Phase components
-import IntroPhase from "@/components/phases/intro-phase"
-import TutorialPhase from "@/components/phases/tutorial-phase"
-import TrainingPhase1 from "@/components/phases/training-phase-1"
-import TrainingPhase2 from "@/components/phases/training-phase-2"
-import BenchmarkPhase from "@/components/phases/benchmark-phase"
-import StrategyPhase from "@/components/phases/strategy-phase"
-import PredictionPhase from "@/components/phases/prediction-phase"
-import ResultsPhase from "@/components/phases/results-phase"
+// Lazy load phase components for code splitting
+const IntroPhase = lazy(() => import("@/components/phases/intro-phase"))
+const TutorialPhase = lazy(() => import("@/components/phases/tutorial-phase"))
+const TrainingPhase1 = lazy(() => import("@/components/phases/training-phase-1"))
+const TrainingPhase2 = lazy(() => import("@/components/phases/training-phase-2"))
+const BenchmarkPhase = lazy(() => import("@/components/phases/benchmark-phase"))
+const StrategyPhase = lazy(() => import("@/components/phases/strategy-phase"))
+const PredictionPhase = lazy(() => import("@/components/phases/prediction-phase"))
+const ResultsPhase = lazy(() => import("@/components/phases/results-phase"))
 
-// Removed registerParticipant function - only Prolific participants allowed
-
-async function checkParticipantExists(prolificPid: string): Promise<{exists: boolean, completed: boolean, participantId?: string}> {
-  const API_BASE = process.env.NODE_ENV === 'production' 
-    ? "https://knapsack-expirement.onrender.com"
-    : "http://localhost:8787"
-    
-  try {
-    const res = await fetch(`${API_BASE}/api/v1/check-participant/${prolificPid}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-      }
-    })
-
-    if (!res.ok) {
-      return { exists: false, completed: false }
-    }
-
-    const data = await res.json()
-    return data
-  } catch (error) {
-    console.error("[Check Participant] API error:", error)
-    return { exists: false, completed: false }
-  }
-}
-
-async function registerParticipantWithProlific(
-  prolificPid: string, 
-  studyId: string, 
-  sessionId: string
-): Promise<string> {
-  const API_BASE = process.env.NODE_ENV === 'production' 
-    ? "https://knapsack-expirement.onrender.com"
-    : "http://localhost:8787"
-    
-  const res = await fetch(`${API_BASE}/api/v1/register-prolific`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      prolificPid,
-      studyId,
-      sessionId
-    })
-  })
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}))
-    
-    if (res.status === 403 && errorData.completed) {
-      throw new Error("Participant has already completed the study")
-    }
-    
-    throw new Error("Failed to register Prolific participant")
-  }
-
-  const data = await res.json()
-  return data.participantId
-}
+// Loading component for lazy loaded phases
+const PhaseLoader = () => (
+  <div className="flex items-center justify-center min-h-[400px]">
+    <div className="text-center">
+      <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-r-transparent mb-4"></div>
+      <p className="text-gray-600">Loading...</p>
+    </div>
+  </div>
+)
 
 const phases = [
   { id: "intro", name: "Welcome", icon: Gift, color: "bg-blue-500" },
@@ -112,6 +60,8 @@ export default function KnapsackExperiment() {
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
 
   useEffect(() => {
+    let cancelled = false
+
     // Check for Prolific parameters - REQUIRED for access
     const urlParams = new URLSearchParams(window.location.search)
     const prolificPid = urlParams.get('PROLIFIC_PID')
@@ -127,18 +77,42 @@ export default function KnapsackExperiment() {
 
     // SECURITY: Only allow access with valid Prolific parameters
     if (!prolificPid || !studyId || !sessionId) {
-      console.error("[Security] Access denied: Missing required Prolific parameters")
       setAccessAllowed(false)
       setIsCheckingAccess(false)
       return
     }
 
-    // Check if participant has already completed the study
-    console.log("[Registration] Checking if participant already exists:", prolificPid)
-    checkParticipantExists(prolificPid!)
+    // Check localStorage first for faster initial load
+    const cachedPid = localStorage.getItem('prolificPid')
+    const cachedParticipantId = localStorage.getItem('participantId')
+    
+    if (cachedPid === prolificPid && cachedParticipantId) {
+      // Fast path: Use cached participant ID immediately
+      setParticipantId(cachedParticipantId)
+      setAccessAllowed(true)
+      setIsCheckingAccess(false)
+      
+      // Verify in background (non-blocking)
+      api.checkParticipant(prolificPid)
+        .then((status) => {
+          if (cancelled) return
+          if (status.completed) {
+            setAccessAllowed(false)
+            setShowCompletedMessage(true)
+          }
+        })
+        .catch(() => {
+          // Background check failed, but we already allowed access with cached data
+        })
+      return
+    }
+
+    // Check participant status (with caching)
+    api.checkParticipant(prolificPid)
       .then((participantStatus) => {
+        if (cancelled) return
+
         if (participantStatus.exists && participantStatus.completed) {
-          console.log("[Registration] Participant has already completed the study")
           setAccessAllowed(false)
           setShowCompletedMessage(true)
           setIsCheckingAccess(false)
@@ -146,118 +120,99 @@ export default function KnapsackExperiment() {
         }
 
         if (participantStatus.exists && !participantStatus.completed && participantStatus.participantId) {
-          console.log("[Registration] Found existing participant, allowing continuation")
           setParticipantId(participantStatus.participantId)
           localStorage.setItem('participantId', participantStatus.participantId)
-          localStorage.setItem('prolificPid', prolificPid!)
+          localStorage.setItem('prolificPid', prolificPid)
           setAccessAllowed(true)
           setIsCheckingAccess(false)
           return
         }
 
-        // If participant doesn't exist in backend, register new participant
-        if (!participantStatus.exists) {
-          console.log("[Registration] Registering new participant:", prolificPid)
-          return registerParticipantWithProlific(prolificPid!, studyId!, sessionId!)
+        // Register new participant if doesn't exist
+        if (!participantStatus.exists && studyId && sessionId) {
+          return api.registerProlific(prolificPid, studyId, sessionId)
+            .then((data) => {
+              if (cancelled) return
+              const id = data.participantId
+              setParticipantId(id)
+              localStorage.setItem('participantId', id)
+              localStorage.setItem('prolificPid', prolificPid)
+              setAccessAllowed(true)
+              setIsCheckingAccess(false)
+            })
         }
 
-        // If we reach here, something unexpected happened - deny access
-        console.error("[Registration] Unexpected participant status:", participantStatus)
         setAccessAllowed(false)
         setIsCheckingAccess(false)
       })
-      .then((id) => {
-        if (id) {
-          console.log("[Registration] Setting participant ID:", id)
-          setParticipantId(id)
-          localStorage.setItem('participantId', id)
-          localStorage.setItem('prolificPid', prolificPid!)
-          console.log("[Registration] Saved participant ID to localStorage")
-          setAccessAllowed(true)
-          setIsCheckingAccess(false)
-        }
-      })
       .catch((error) => {
-        console.error("[Registration] Failed to register participant:", error)
+        if (cancelled) return
         
-        // Check if error is due to participant already completing the study
-        if (error.message.includes('already completed')) {
-          console.log("[Registration] Participant has already completed the study")
+        if (error.message?.includes('already completed')) {
           setShowCompletedMessage(true)
-          setAccessAllowed(false)
-          setIsCheckingAccess(false)
-        } else {
-          console.error("[Registration] Backend unavailable - denying access for security")
-          setAccessAllowed(false)
-          setIsCheckingAccess(false)
         }
+        setAccessAllowed(false)
+        setIsCheckingAccess(false)
       })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
   
 
-  const currentPhaseIndex = phases.findIndex((p) => p.id === currentPhase)
-  const progress = ((currentPhaseIndex + 1) / phases.length) * 100
+  // Memoize expensive calculations
+  const currentPhaseIndex = useMemo(
+    () => phases.findIndex((p) => p.id === currentPhase),
+    [currentPhase]
+  )
+  
+  const progress = useMemo(
+    () => ((currentPhaseIndex + 1) / phases.length) * 100,
+    [currentPhaseIndex]
+  )
 
-  const nextPhase = () => {
+  const nextPhase = useCallback(() => {
     const nextIndex = currentPhaseIndex + 1
     if (nextIndex < phases.length) {
       setCurrentPhase(phases[nextIndex].id)
-    } else {
-      // This should not happen since Results is the final phase
-      console.log("[App] All phases completed - Results phase should handle completion")
     }
-  }
+  }, [currentPhaseIndex])
 
-  const completeProlificStudy = async () => {
+  const completeProlificStudy = useCallback(async () => {
     if (prolificParams.prolificPid && participantId) {
-      // Mark participant as completed in the backend
       try {
-        const API_BASE = process.env.NODE_ENV === 'production' 
-          ? "https://knapsack-expirement.onrender.com"
-          : "http://localhost:8787"
-          
-        await fetch(`${API_BASE}/api/v1/complete-participant`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            participantId,
-            prolificPid: prolificParams.prolificPid,
-            completedAt: new Date().toISOString()
-          })
+        await api.post('/api/v1/complete-participant', {
+          participantId,
+          prolificPid: prolificParams.prolificPid,
+          completedAt: new Date().toISOString()
         })
-        
-        console.log("[Completion] Marked participant as completed")
       } catch (error) {
         console.error("[Completion] Failed to mark participant as completed:", error)
       }
       
-      // Clear localStorage to prevent repeat access
       localStorage.removeItem('participantId')
       localStorage.removeItem('prolificPid')
-      console.log("[Completion] Cleared localStorage to prevent repeat access")
       
-      // Redirect to Prolific completion page with actual completion code
-      const completionUrl = `https://app.prolific.co/submissions/complete?cc=KNAPSACK2024` // Use your actual completion code from Prolific dashboard
-      window.location.href = completionUrl
+      window.location.href = `https://app.prolific.co/submissions/complete?cc=KNAPSACK2024`
     }
-  }
+  }, [prolificParams.prolificPid, participantId])
 
-  const updateParticipantData = (data: any) => {
+  const updateParticipantData = useCallback((data: any) => {
     setParticipantData((prev) => ({
       ...prev,
       ...data,
     }))
-  }
+  }, [])
 
-  const renderPhase = () => {
-    const phaseProps = {
-      onNext: nextPhase,
-      participantData,
-      updateParticipantData,
-    }
+  // Memoize phase props to prevent unnecessary re-renders
+  const phaseProps = useMemo(() => ({
+    onNext: nextPhase,
+    participantData,
+    updateParticipantData,
+  }), [nextPhase, participantData, updateParticipantData])
 
+  const renderPhase = useMemo(() => {
     switch (currentPhase) {
       case "intro":
         return <IntroPhase {...phaseProps} />
@@ -278,7 +233,7 @@ export default function KnapsackExperiment() {
       default:
         return <IntroPhase {...phaseProps} />
     }
-  }
+  }, [currentPhase, phaseProps, participantData.benchmark])
 
   // Show loading state while checking access
   if (isCheckingAccess) {
@@ -368,11 +323,6 @@ export default function KnapsackExperiment() {
                   <p className="text-sm text-gray-600">Interactive Problem Solving</p>
                 </div>
               </div>
-              {participantId && (
-                <Badge variant="outline" className="text-sm bg-blue-50 border-blue-200 text-blue-700">
-                  Participant ID: {participantId}
-                </Badge>
-              )}
             </div>
 
             <div className="flex items-center space-x-6">
@@ -461,7 +411,9 @@ export default function KnapsackExperiment() {
             exit={{ opacity: 0, y: -30 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
           >
-            {renderPhase()}
+            <Suspense fallback={<PhaseLoader />}>
+              {renderPhase}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </main>

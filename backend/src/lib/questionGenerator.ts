@@ -613,16 +613,16 @@ export function generatePhaseQuestions(
   
   switch (phase) {
     case 'benchmark':
-      // Benchmark test: 5 easy + 5 medium + 5 hard = 15 total
-      easyCount = 5;
-      mediumCount = 5;
-      hardCount = 5;
+      // Benchmark test: 10 easy + 10 medium + 10 hard = 30 total
+      easyCount = 10;
+      mediumCount = 10;
+      hardCount = 10;
       break;
     case 'prediction':
-      // Final test: 5 easy + 5 medium + 5 hard = 15 total
-      easyCount = 5;
-      mediumCount = 5;
-      hardCount = 5;
+      // Final test: 10 easy + 10 medium + 10 hard = 30 total
+      easyCount = 10;
+      mediumCount = 10;
+      hardCount = 10;
       break;
     default:
       // Fallback to practice questions

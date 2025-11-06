@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Download
 } from 'lucide-react'
+import { api, getApiBase } from '@/lib/api-client'
 
 interface AdminDashboardProps {
   onClose?: () => void
@@ -62,26 +63,25 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const [participantDetails, setParticipantDetails] = useState<any>(null)
   const [loadingDetails, setLoadingDetails] = useState(false)
 
-  // Utility functions
-  const formatTime = (milliseconds: number) => {
+  // Memoized utility functions
+  const formatTime = useCallback((milliseconds: number) => {
     if (!milliseconds || milliseconds === 0) return '0m 0s'
     const seconds = Math.floor(milliseconds / 1000)
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}m ${remainingSeconds}s`
-  }
+  }, [])
 
-  const formatDate = (dateString: string | number) => {
+  const formatDate = useCallback((dateString: string | number) => {
     if (!dateString) return 'N/A'
     const date = new Date(dateString)
     return date.toLocaleTimeString()
-  }
+  }, [])
 
-  const API_BASE = process.env.NODE_ENV === 'production' 
-    ? "https://knapsack-expirement.onrender.com"
-    : "http://localhost:8787"
+  // Memoize API base
+  const API_BASE = useMemo(() => getApiBase(), [])
 
-  const authenticate = async () => {
+  const authenticate = useCallback(async () => {
     if (!adminKey.trim()) {
       setError('Please enter admin key')
       return
@@ -91,46 +91,44 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     setError(null)
 
     try {
-      const response = await fetch(`${API_BASE}/api/v1/admin/analytics?adminKey=${encodeURIComponent(adminKey)}`)
-      
-      if (response.status === 401) {
-        setError('Invalid admin key')
-        return
-      }
-
-      if (!response.ok) {
-        throw new Error('Failed to authenticate')
-      }
-
-      const data = await response.json()
+      const data = await api.get<AnalyticsData>(
+        `/api/v1/admin/analytics?adminKey=${encodeURIComponent(adminKey)}`,
+        false // Don't cache admin data
+      )
       setAnalytics(data)
       setIsAuthenticated(true)
-    } catch (err) {
-      setError('Authentication failed')
+    } catch (err: any) {
+      if (err.status === 401 || err.message?.includes('401') || err.message?.includes('Invalid')) {
+        setError('Invalid admin key')
+      } else {
+        setError('Authentication failed. Please check your connection.')
+      }
       console.error('Auth error:', err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [adminKey])
 
-  const refreshData = async () => {
-    if (!isAuthenticated) return
+  const refreshData = useCallback(async () => {
+    if (!isAuthenticated || !adminKey) return
 
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE}/api/v1/admin/analytics?adminKey=${encodeURIComponent(adminKey)}`)
-      if (response.ok) {
-        const data = await response.json()
-        setAnalytics(data)
-      }
+      const data = await api.get<AnalyticsData>(
+        `/api/v1/admin/analytics?adminKey=${encodeURIComponent(adminKey)}`,
+        false
+      )
+      setAnalytics(data)
     } catch (err) {
       console.error('Refresh error:', err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [isAuthenticated, adminKey])
 
-  const exportData = async () => {
+  const exportData = useCallback(async () => {
+    if (!adminKey) return
+    
     try {
       const response = await fetch(`${API_BASE}/api/v1/export-prolific-data?adminKey=${encodeURIComponent(adminKey)}`)
       if (response.ok) {
@@ -147,26 +145,26 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     } catch (err) {
       console.error('Export error:', err)
     }
-  }
+  }, [adminKey, API_BASE])
 
-  const viewParticipantDetails = async (participantId: string) => {
+  const viewParticipantDetails = useCallback(async (participantId: string) => {
+    if (!adminKey) return
+    
     setLoadingDetails(true)
     setSelectedParticipant(participantId)
     
     try {
-      const response = await fetch(`${API_BASE}/api/v1/admin/participant/${participantId}?adminKey=${encodeURIComponent(adminKey)}`)
-      if (response.ok) {
-        const data = await response.json()
-        setParticipantDetails(data)
-      } else {
-        console.error('Failed to fetch participant details')
-      }
+      const data = await api.get<any>(
+        `/api/v1/admin/participant/${participantId}?adminKey=${encodeURIComponent(adminKey)}`,
+        false
+      )
+      setParticipantDetails(data)
     } catch (err) {
       console.error('Error fetching participant details:', err)
     } finally {
       setLoadingDetails(false)
     }
-  }
+  }, [adminKey])
 
 
   // Authentication Screen
