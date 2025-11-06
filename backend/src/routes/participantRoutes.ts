@@ -161,25 +161,51 @@ router.post('/api/v1/register-prolific', async (req, res) => {
   }
 
   // Create new participant with Prolific data
-  const id = crypto.randomUUID()
-  
-  const newDoc = await ParticipantModel.create({
-    participantId: id,
-    prolificData: {
-      prolificPid,
-      studyId,
-      sessionId,
-      registeredAt: new Date()
-    },
-    createdAt: new Date(),
-  })
+  // Use try-catch to handle race conditions (if another request creates the participant simultaneously)
+  try {
+    const id = crypto.randomUUID()
+    
+    const newDoc = await ParticipantModel.create({
+      participantId: id,
+      prolificData: {
+        prolificPid,
+        studyId,
+        sessionId,
+        registeredAt: new Date()
+      },
+      createdAt: new Date(),
+    })
 
-  console.log(`[Backend] Created new participant for Prolific ID: ${prolificPid}, Participant ID: ${id}`)
-  return res.status(201).json({ 
-    participantId: newDoc.participantId,
-    message: 'New participant created',
-    isExisting: false
-  })
+    console.log(`[Backend] Created new participant for Prolific ID: ${prolificPid}, Participant ID: ${id}`)
+    return res.status(201).json({ 
+      participantId: newDoc.participantId,
+      message: 'New participant created',
+      isExisting: false
+    })
+  } catch (createError: any) {
+    // Handle duplicate key error (race condition)
+    if (createError.code === 11000 || createError.message?.includes('duplicate key')) {
+      console.log(`[Backend] Race condition detected for Prolific ID: ${prolificPid}. Checking for existing participant...`)
+      
+      // Try to find the participant that was just created
+      const raceConditionParticipant = await ParticipantModel.findOne({ 
+        'prolificData.prolificPid': prolificPid 
+      })
+      
+      if (raceConditionParticipant) {
+        console.log(`[Backend] Found existing participant from race condition: ${raceConditionParticipant.participantId}`)
+        return res.status(200).json({ 
+          participantId: raceConditionParticipant.participantId,
+          message: 'Returning existing participant (race condition handled)',
+          isExisting: true
+        })
+      }
+    }
+    
+    // Re-throw if it's not a duplicate key error
+    console.error(`[Backend] Error creating participant for Prolific ID: ${prolificPid}`, createError)
+    throw createError
+  }
 })
 
 // INGEST phase data (practice, skill, etc)
@@ -187,14 +213,19 @@ router.post('/api/v1/ingest-phase', async (req, res) => {
   const { participantId, phase, data } = req.body
 
   if (!participantId || !phase || !data) {
+    console.error('[INGEST ERROR] Missing required fields', { participantId, phase, hasData: !!data })
     return res.status(400).json({ error: 'Missing required fields' })
   }
 
   try {
-    const updateFields: Record<string, any> = {}
-    for (const [key, value] of Object.entries(data)) {
-      updateFields[`tests.${phase}.${key}`] = value
+    // First verify participant exists
+    const participant = await ParticipantModel.findOne({ participantId })
+    if (!participant) {
+      console.error(`[INGEST ERROR] Participant not found: ${participantId}`)
+      return res.status(404).json({ error: "Participant not found" })
     }
+
+    console.log(`[INGEST] Storing data for participant ${participantId}, phase: ${phase}`)
 
     const updated = await ParticipantModel.findOneAndUpdate(
         { participantId },
@@ -206,14 +237,22 @@ router.post('/api/v1/ingest-phase', async (req, res) => {
             [`tests.${phase}.accuracy`]: data.accuracy,
             [`tests.${phase}.answers`]: data.answers,
             [`tests.${phase}.timeUsed`]: data.timeUsed,
-            [`tests.${phase}.questionTimes`]: data.questionTimes || []
+            [`tests.${phase}.questionTimes`]: data.questionTimes || [],
+            [`tests.${phase}.totalPoints`]: data.totalPoints,
+            [`tests.${phase}.maxPoints`]: data.maxPoints,
+            [`tests.${phase}.incorrectAnswers`]: data.incorrectAnswers,
+            [`tests.${phase}.unansweredQuestions`]: data.unansweredQuestions
           }
         },
-        { upsert: true, new: true }
+        { new: true }
       )
       
-      if (!updated) return res.status(404).json({ error: "Participant not found" })
+      if (!updated) {
+        console.error(`[INGEST ERROR] Failed to update participant: ${participantId}`)
+        return res.status(404).json({ error: "Participant not found" })
+      }
       
+      console.log(`[INGEST SUCCESS] Data stored for participant ${participantId}, phase: ${phase}`)
       return res.status(200).json({ success: true, updated })
       
   } catch (err) {

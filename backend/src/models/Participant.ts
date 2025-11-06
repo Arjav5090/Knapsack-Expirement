@@ -46,10 +46,10 @@ const testPhaseSchema = new mongoose.Schema({
 }, { _id: false })
 
 const participantSchema = new mongoose.Schema({
-  participantId: { type: String, required: true },
+  participantId: { type: String, required: true, unique: true },
   createdAt: { type: Date, default: Date.now },
   prolificData: {
-    prolificPid: String,
+    prolificPid: { type: String, unique: true, sparse: true }, // Unique index, sparse allows nulls
     studyId: String, 
     sessionId: String,
     registeredAt: Date,

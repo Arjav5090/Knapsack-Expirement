@@ -82,37 +82,16 @@ export default function KnapsackExperiment() {
       return
     }
 
-    // Check localStorage first for faster initial load
-    const cachedPid = localStorage.getItem('prolificPid')
-    const cachedParticipantId = localStorage.getItem('participantId')
-    
-    if (cachedPid === prolificPid && cachedParticipantId) {
-      // Fast path: Use cached participant ID immediately
-      setParticipantId(cachedParticipantId)
-      setAccessAllowed(true)
-      setIsCheckingAccess(false)
-      
-      // Verify in background (non-blocking)
-      api.checkParticipant(prolificPid)
-        .then((status) => {
-          if (cancelled) return
-          if (status.completed) {
-            setAccessAllowed(false)
-            setShowCompletedMessage(true)
-          }
-        })
-        .catch(() => {
-          // Background check failed, but we already allowed access with cached data
-        })
-      return
-    }
-
+    // Always verify with backend first to prevent duplicate participants
     // Check participant status (with caching)
     api.checkParticipant(prolificPid)
       .then((participantStatus) => {
         if (cancelled) return
 
         if (participantStatus.exists && participantStatus.completed) {
+          // Clear localStorage if participant completed
+          localStorage.removeItem('participantId')
+          localStorage.removeItem('prolificPid')
           setAccessAllowed(false)
           setShowCompletedMessage(true)
           setIsCheckingAccess(false)
@@ -120,8 +99,20 @@ export default function KnapsackExperiment() {
         }
 
         if (participantStatus.exists && !participantStatus.completed && participantStatus.participantId) {
-          setParticipantId(participantStatus.participantId)
-          localStorage.setItem('participantId', participantStatus.participantId)
+          // Use backend's participantId (always authoritative)
+          const backendParticipantId = participantStatus.participantId
+          
+          // Check if cached participantId matches backend
+          const cachedParticipantId = localStorage.getItem('participantId')
+          if (cachedParticipantId !== backendParticipantId) {
+            // Mismatch: clear cache and use backend's ID
+            console.warn(`[Participant Mismatch] Cached: ${cachedParticipantId}, Backend: ${backendParticipantId}. Using backend ID.`)
+            localStorage.removeItem('participantId')
+            localStorage.removeItem('prolificPid')
+          }
+          
+          setParticipantId(backendParticipantId)
+          localStorage.setItem('participantId', backendParticipantId)
           localStorage.setItem('prolificPid', prolificPid)
           setAccessAllowed(true)
           setIsCheckingAccess(false)
@@ -134,11 +125,36 @@ export default function KnapsackExperiment() {
             .then((data) => {
               if (cancelled) return
               const id = data.participantId
+              
+              // Clear any old cached data before setting new
+              localStorage.removeItem('participantId')
+              localStorage.removeItem('prolificPid')
+              
               setParticipantId(id)
               localStorage.setItem('participantId', id)
               localStorage.setItem('prolificPid', prolificPid)
               setAccessAllowed(true)
               setIsCheckingAccess(false)
+            })
+            .catch((registerError: any) => {
+              if (cancelled) return
+              console.error('[Registration Error]', registerError)
+              
+              // If registration fails, try checking again (might have been created by another request)
+              return api.checkParticipant(prolificPid)
+                .then((retryStatus) => {
+                  if (cancelled) return
+                  if (retryStatus.exists && retryStatus.participantId) {
+                    setParticipantId(retryStatus.participantId)
+                    localStorage.setItem('participantId', retryStatus.participantId)
+                    localStorage.setItem('prolificPid', prolificPid)
+                    setAccessAllowed(true)
+                    setIsCheckingAccess(false)
+                  } else {
+                    setAccessAllowed(false)
+                    setIsCheckingAccess(false)
+                  }
+                })
             })
         }
 
@@ -147,6 +163,8 @@ export default function KnapsackExperiment() {
       })
       .catch((error) => {
         if (cancelled) return
+        
+        console.error('[Check Participant Error]', error)
         
         if (error.message?.includes('already completed')) {
           setShowCompletedMessage(true)
