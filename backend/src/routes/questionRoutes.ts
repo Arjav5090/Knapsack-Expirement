@@ -44,10 +44,12 @@ questionRouter.post('/api/v1/questions/generate', async (req, res) => {
     console.log(`[Question Generation] Generating ${questionCount} questions for participant ${participantId}, phase ${phase}, seed ${generationSeed}`);
 
     // Generate questions using static questions
+    // Pass original phase name to handle 'skill' phase specially
     const { questions, config, analysisStats } = generatePhaseQuestions(
       generatorPhase,
       questionCount,
-      generationSeed
+      generationSeed,
+      phase // Pass original phase name
     );
 
     // Check if question set already exists and delete it
@@ -246,8 +248,10 @@ function mapPhaseToGenerator(phase: string): 'training' | 'benchmark' | 'predict
     case 'training':
     case 'practice':
       return 'training';
-    case 'benchmark':
     case 'skill':
+      // Skill test (Test 1) uses training phase but with grouped ordering
+      return 'training';
+    case 'benchmark':
     case 'strategy':
       return 'benchmark';
     case 'prediction':
@@ -266,8 +270,9 @@ function getQuestionCountForPhase(phase: string): number {
     case 'training':
     case 'practice':
       return 6; // 2 easy + 2 medium + 2 hard (hardcoded practice questions)
-    case 'benchmark':
     case 'skill':
+      return 10; // Test 1: 3 easy + 4 medium + 3 hard
+    case 'benchmark':
     case 'strategy':
       return 30; // 10 easy + 10 medium + 10 hard
     case 'prediction':

@@ -440,31 +440,108 @@ function loadStaticQuestions() {
 }
 
 /**
+ * Randomize question order using weighted random selection
+ * Optimized approach: randomly selects difficulty based on remaining counts
+ * More memory-efficient than generating all permutations (avoids OOM for large question sets)
+ */
+function randomizeQuestionOrder(
+  easyQuestions: Question[],
+  mediumQuestions: Question[],
+  hardQuestions: Question[],
+  easyCount: number,
+  mediumCount: number,
+  hardCount: number
+): Question[] {
+  // Shuffle questions within each difficulty group
+  const shuffledEasy = [...easyQuestions].sort(() => Math.random() - 0.5);
+  const shuffledMedium = [...mediumQuestions].sort(() => Math.random() - 0.5);
+  const shuffledHard = [...hardQuestions].sort(() => Math.random() - 0.5);
+  
+  // Build result array by randomly selecting from remaining difficulties
+  const result: Question[] = [];
+  let easyIndex = 0;
+  let mediumIndex = 0;
+  let hardIndex = 0;
+  let eRemaining = easyCount;
+  let mRemaining = mediumCount;
+  let hRemaining = hardCount;
+  
+  const total = easyCount + mediumCount + hardCount;
+  
+  for (let i = 0; i < total; i++) {
+    // Calculate weights based on remaining counts
+    const totalRemaining = eRemaining + mRemaining + hRemaining;
+    const rand = Math.random() * totalRemaining;
+    
+    if (rand < eRemaining && easyIndex < shuffledEasy.length) {
+      result.push(shuffledEasy[easyIndex++]);
+      eRemaining--;
+    } else if (rand < eRemaining + mRemaining && mediumIndex < shuffledMedium.length) {
+      result.push(shuffledMedium[mediumIndex++]);
+      mRemaining--;
+    } else if (hardIndex < shuffledHard.length) {
+      result.push(shuffledHard[hardIndex++]);
+      hRemaining--;
+    } else if (easyIndex < shuffledEasy.length) {
+      // Fallback if one category runs out
+      result.push(shuffledEasy[easyIndex++]);
+      eRemaining--;
+    } else if (mediumIndex < shuffledMedium.length) {
+      result.push(shuffledMedium[mediumIndex++]);
+      mRemaining--;
+    }
+  }
+  
+  return result;
+}
+
+/**
  * Gets questions for a specific phase and difficulty distribution
+ * Filters by NUM_BALLS (currently 4) to ensure consistency
+ * For Test 1 (training/skill): groups by difficulty (all easy, then medium, then hard)
+ * For Test 2 and 3 (benchmark/prediction): randomizes order using permutation patterns
  */
 function getStaticQuestionsForPhase(
   phase: 'training' | 'benchmark' | 'prediction',
   easyCount: number,
   mediumCount: number,
-  hardCount: number
+  hardCount: number,
+  randomize: boolean = false
 ): Question[] {
+  const NUM_BALLS = 4; // Must match lib/config.ts
+  
   const allQuestions = loadStaticQuestions();
-  const phaseQuestions = allQuestions.filter((q: any) => q.phase === phase);
+  const phaseQuestions = allQuestions.filter(
+    (q: any) => q.phase === phase && q.balls.length === NUM_BALLS
+  );
   
   const easyQuestions = phaseQuestions.filter((q: any) => q.difficulty === 'easy');
   const mediumQuestions = phaseQuestions.filter((q: any) => q.difficulty === 'medium');
   const hardQuestions = phaseQuestions.filter((q: any) => q.difficulty === 'hard');
   
-  // Shuffle and select the required number
+  // Shuffle within each difficulty group
   const shuffledEasy = [...easyQuestions].sort(() => Math.random() - 0.5);
   const shuffledMedium = [...mediumQuestions].sort(() => Math.random() - 0.5);
   const shuffledHard = [...hardQuestions].sort(() => Math.random() - 0.5);
   
-  return [
-    ...shuffledEasy.slice(0, easyCount),
-    ...shuffledMedium.slice(0, mediumCount),
-    ...shuffledHard.slice(0, hardCount)
-  ];
+  // For Test 2 and 3, randomize order; for Test 1, group by difficulty
+  if (randomize) {
+    return randomizeQuestionOrder(
+      shuffledEasy,
+      shuffledMedium,
+      shuffledHard,
+      easyCount,
+      mediumCount,
+      hardCount
+    );
+  } else {
+    // Test 1: all easy first, then medium, then hard
+    return [
+      ...shuffledEasy.slice(0, easyCount),
+      ...shuffledMedium.slice(0, mediumCount),
+      ...shuffledHard.slice(0, hardCount)
+    ];
+  }
 }
 
 /**
@@ -572,10 +649,12 @@ function loadPracticeQuestions(): Question[] {
 export function generatePhaseQuestions(
   phase: 'training' | 'benchmark' | 'prediction',
   count: number,
-  seed: number
+  seed: number,
+  originalPhase?: string // Original phase name to distinguish 'skill' from 'training'
 ): { questions: Question[]; config: GeneratorConfig; analysisStats: any } {
   // Handle practice phase separately with hardcoded questions
-  if (phase === 'training') {
+  // But if originalPhase is 'skill', use Test 1 logic instead
+  if (phase === 'training' && originalPhase !== 'skill') {
     const practiceQuestions = loadPracticeQuestions();
     
     const counts = { easy: 0, medium: 0, hard: 0 };
@@ -614,23 +693,45 @@ export function generatePhaseQuestions(
   switch (phase) {
     case 'benchmark':
       // Benchmark test: 10 easy + 10 medium + 10 hard = 30 total
+      // Randomize order for Test 2
       easyCount = 10;
       mediumCount = 10;
       hardCount = 10;
-      break;
+      const benchmarkQuestions = getStaticQuestionsForPhase(phase, easyCount, mediumCount, hardCount, true);
+      return formatQuestionsResponse(benchmarkQuestions, phase, seed);
     case 'prediction':
       // Final test: 10 easy + 10 medium + 10 hard = 30 total
+      // Randomize order for Test 3
       easyCount = 10;
       mediumCount = 10;
       hardCount = 10;
-      break;
+      const predictionQuestions = getStaticQuestionsForPhase(phase, easyCount, mediumCount, hardCount, true);
+      return formatQuestionsResponse(predictionQuestions, phase, seed);
+    case 'training':
+      // Test 1 (Skill Test): grouped by difficulty (all easy, then medium, then hard)
+      // Using 3 easy + 4 medium + 3 hard = 10 total
+      if (originalPhase === 'skill') {
+        easyCount = 3;
+        mediumCount = 4;
+        hardCount = 3;
+        const skillQuestions = getStaticQuestionsForPhase(phase, easyCount, mediumCount, hardCount, false);
+        return formatQuestionsResponse(skillQuestions, phase, seed);
+      }
+      // Fall through to default for regular training (practice)
     default:
       // Fallback to practice questions
-      return generatePhaseQuestions('training', 6, seed);
+      return generatePhaseQuestions('training', 6, seed, originalPhase);
   }
-  
-  const questions = getStaticQuestionsForPhase(phase, easyCount, mediumCount, hardCount);
-  
+}
+
+/**
+ * Helper function to format questions response
+ */
+function formatQuestionsResponse(
+  questions: Question[],
+  phase: 'training' | 'benchmark' | 'prediction',
+  seed: number
+): { questions: Question[]; config: GeneratorConfig; analysisStats: any } {
   // Calculate analysis stats
   const counts = { easy: 0, medium: 0, hard: 0 };
   let totalDominance = 0;

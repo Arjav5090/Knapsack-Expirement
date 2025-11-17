@@ -134,6 +134,106 @@ export function removeDominatedItems(items: Ball[]): {
 }
 
 /**
+ * Classifies difficulty based on Leo's definition from readme.tex
+ * 
+ * Easy: For any two balls B_k and B_j, either B_k ≻ B_j OR B_j ≻ B_k
+ *       (every pair has a dominance relationship - full dominance chain)
+ * 
+ * Medium: There exists one maximal ball B_k such that B_k ≻ B for all remaining B,
+ *         AND one minimal ball B_j such that B ≻ B_j for all remaining B
+ *         (partial dominance - has both maximal and minimal elements)
+ * 
+ * Hard: B_k ⊁ B_j for all k, j (no dominance relationships exist)
+ */
+export function classifyDifficultyByDominance(balls: Ball[]): 'easy' | 'medium' | 'hard' {
+  if (balls.length < 2) {
+    return 'easy' // Single ball is trivially easy
+  }
+
+  // Check all pairs for dominance relationships
+  const dominanceMatrix: boolean[][] = []
+  let hasAnyDominance = false
+
+  for (let i = 0; i < balls.length; i++) {
+    dominanceMatrix[i] = []
+    for (let j = 0; j < balls.length; j++) {
+      if (i === j) {
+        dominanceMatrix[i][j] = false
+      } else {
+        const dominates = itemDominates(balls[i], balls[j])
+        dominanceMatrix[i][j] = dominates
+        if (dominates) {
+          hasAnyDominance = true
+        }
+      }
+    }
+  }
+
+  // Hard: No dominance relationships exist
+  if (!hasAnyDominance) {
+    return 'hard'
+  }
+
+  // Check if every pair has a dominance relationship (Easy)
+  let allPairsHaveDominance = true
+  for (let i = 0; i < balls.length; i++) {
+    for (let j = i + 1; j < balls.length; j++) {
+      const iDominatesJ = dominanceMatrix[i][j]
+      const jDominatesI = dominanceMatrix[j][i]
+      if (!iDominatesJ && !jDominatesI) {
+        allPairsHaveDominance = false
+        break
+      }
+    }
+    if (!allPairsHaveDominance) break
+  }
+
+  if (allPairsHaveDominance) {
+    return 'easy'
+  }
+
+  // Medium: Check for maximal and minimal elements
+  // Maximal: dominates all other balls
+  // Minimal: dominated by all other balls
+  let hasMaximal = false
+  let hasMinimal = false
+
+  for (let i = 0; i < balls.length; i++) {
+    // Check if ball i is maximal (dominates all others)
+    let dominatesAll = true
+    for (let j = 0; j < balls.length; j++) {
+      if (i !== j && !dominanceMatrix[i][j]) {
+        dominatesAll = false
+        break
+      }
+    }
+    if (dominatesAll) {
+      hasMaximal = true
+    }
+
+    // Check if ball i is minimal (dominated by all others)
+    let dominatedByAll = true
+    for (let j = 0; j < balls.length; j++) {
+      if (i !== j && !dominanceMatrix[j][i]) {
+        dominatedByAll = false
+        break
+      }
+    }
+    if (dominatedByAll) {
+      hasMinimal = true
+    }
+  }
+
+  // Medium: has both maximal and minimal elements
+  if (hasMaximal && hasMinimal) {
+    return 'medium'
+  }
+
+  // Default to hard if we can't classify as easy or medium
+  return 'hard'
+}
+
+/**
  * Calculates difficulty metrics for a knapsack problem
  */
 export function analyzeDifficulty(items: Ball[], capacity: number, solution: number[]): {

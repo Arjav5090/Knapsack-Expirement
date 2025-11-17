@@ -1,0 +1,3321 @@
+{
+  "participantId": "DEMO001",
+  "generatedAt": "2025-11-10T20:53:24.233Z",
+  "numBalls": 4,
+  "practice": [
+    {
+      "id": 1,
+      "capacity": 8,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 12,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 4,
+          "reward": 10,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 2,
+          "reward": 8,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 5,
+          "reward": 15,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        3
+      ],
+      "explanation": "Select items 1 and 3 for total weight 5 and reward 20, staying within capacity 8.",
+      "difficulty": "easy"
+    },
+    {
+      "id": 2,
+      "capacity": 10,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 15,
+          "color": "bg-yellow-500"
+        },
+        {
+          "id": 2,
+          "weight": 3,
+          "reward": 12,
+          "color": "bg-purple-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 18,
+          "color": "bg-pink-500"
+        },
+        {
+          "id": 4,
+          "weight": 2,
+          "reward": 10,
+          "color": "bg-indigo-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "Select items 1 and 2 for total weight 7 and reward 27, staying within capacity 10.",
+      "difficulty": "easy"
+    },
+    {
+      "id": 3,
+      "capacity": 12,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 16,
+          "color": "bg-indigo-500"
+        },
+        {
+          "id": 2,
+          "weight": 3,
+          "reward": 12,
+          "color": "bg-orange-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 20,
+          "color": "bg-teal-500"
+        },
+        {
+          "id": 4,
+          "weight": 2,
+          "reward": 8,
+          "color": "bg-rose-500"
+        }
+      ],
+      "solution": [
+        1,
+        3,
+        4
+      ],
+      "explanation": "Select items 1, 3, and 4 for total weight 11 and reward 44, staying within capacity 12.",
+      "difficulty": "medium"
+    },
+    {
+      "id": 4,
+      "capacity": 15,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 20,
+          "color": "bg-cyan-500"
+        },
+        {
+          "id": 2,
+          "weight": 3,
+          "reward": 15,
+          "color": "bg-lime-500"
+        },
+        {
+          "id": 3,
+          "weight": 4,
+          "reward": 18,
+          "color": "bg-amber-500"
+        },
+        {
+          "id": 4,
+          "weight": 6,
+          "reward": 22,
+          "color": "bg-emerald-500"
+        }
+      ],
+      "solution": [
+        2,
+        3,
+        4
+      ],
+      "explanation": "Select items 2, 3, and 4 for total weight 13 and reward 55, staying within capacity 15.",
+      "difficulty": "medium"
+    },
+    {
+      "id": 5,
+      "capacity": 18,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 6,
+          "reward": 24,
+          "color": "bg-violet-500"
+        },
+        {
+          "id": 2,
+          "weight": 4,
+          "reward": 18,
+          "color": "bg-sky-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 22,
+          "color": "bg-stone-500"
+        },
+        {
+          "id": 4,
+          "weight": 3,
+          "reward": 15,
+          "color": "bg-slate-500"
+        }
+      ],
+      "solution": [
+        2,
+        3,
+        4
+      ],
+      "explanation": "Select items 2, 3, and 4 for total weight 12 and reward 55, staying within capacity 18.",
+      "difficulty": "hard"
+    },
+    {
+      "id": 6,
+      "capacity": 20,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 7,
+          "reward": 28,
+          "color": "bg-zinc-500"
+        },
+        {
+          "id": 2,
+          "weight": 4,
+          "reward": 20,
+          "color": "bg-red-600"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 25,
+          "color": "bg-blue-600"
+        },
+        {
+          "id": 4,
+          "weight": 3,
+          "reward": 18,
+          "color": "bg-green-600"
+        }
+      ],
+      "solution": [
+        2,
+        3,
+        4
+      ],
+      "explanation": "Select items 2, 3, and 4 for total weight 12 and reward 63, staying within capacity 20.",
+      "difficulty": "hard"
+    }
+  ],
+  "test1": [
+    {
+      "id": 98,
+      "capacity": 18,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 2,
+          "reward": 24,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 18,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 18,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 13,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (60) while staying within capacity (16/18).",
+      "difficulty": "easy",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6923076923076923,
+        "optimalityGap": 5,
+        "densityVariance": 18.43171875
+      }
+    },
+    {
+      "id": 30,
+      "capacity": 11,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 2,
+          "reward": 22,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 4,
+          "reward": 14,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 12,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 4,
+          "reward": 17,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (53) while staying within capacity (10/11).",
+      "difficulty": "easy",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7333333333333333,
+        "optimalityGap": 2,
+        "densityVariance": 11.31046875
+      }
+    },
+    {
+      "id": 100,
+      "capacity": 11,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 2,
+          "reward": 24,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 4,
+          "reward": 22,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 12,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 4,
+          "reward": 17,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (63) while staying within capacity (10/11).",
+      "difficulty": "easy",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7333333333333333,
+        "optimalityGap": 5,
+        "densityVariance": 13.06671875
+      }
+    },
+    {
+      "id": 151,
+      "capacity": 16,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 30,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 5,
+          "reward": 28,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 3,
+          "reward": 27,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 20,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (85) while staying within capacity (11/16).",
+      "difficulty": "medium",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7619047619047619,
+        "optimalityGap": 8,
+        "densityVariance": 9.8675
+      }
+    },
+    {
+      "id": 131,
+      "capacity": 16,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 15,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 8,
+          "reward": 14,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 3,
+          "reward": 23,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 8,
+          "reward": 20,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        3,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (58) while staying within capacity (14/16).",
+      "difficulty": "medium",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7272727272727273,
+        "optimalityGap": 6,
+        "densityVariance": 5.38671875
+      }
+    },
+    {
+      "id": 114,
+      "capacity": 11,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 30,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 5,
+          "reward": 28,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 7,
+          "reward": 18,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 3,
+          "reward": 25,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (83) while staying within capacity (11/11).",
+      "difficulty": "medium",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6111111111111112,
+        "optimalityGap": 25,
+        "densityVariance": 7.947772108843538
+      }
+    },
+    {
+      "id": 191,
+      "capacity": 10,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 30,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 5,
+          "reward": 28,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 12,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 4,
+          "reward": 27,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (58) while staying within capacity (8/10).",
+      "difficulty": "medium",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.5882352941176471,
+        "optimalityGap": 1,
+        "densityVariance": 7.38546875
+      }
+    },
+    {
+      "id": 269,
+      "capacity": 23,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 8,
+          "reward": 12,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 9,
+          "reward": 35,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 7,
+          "reward": 27,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 9,
+          "reward": 34,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (69) while staying within capacity (18/23).",
+      "difficulty": "hard",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 2,
+        "slackRatio": 0.696969696969697,
+        "optimalityGap": 7,
+        "densityVariance": 1.0294272801713278
+      }
+    },
+    {
+      "id": 284,
+      "capacity": 23,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 6,
+          "reward": 25,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 12,
+          "reward": 32,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 35,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 8,
+          "reward": 31,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (92) while staying within capacity (23/23).",
+      "difficulty": "hard",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7419354838709677,
+        "optimalityGap": 1,
+        "densityVariance": 2.5228949652777777
+      }
+    },
+    {
+      "id": 271,
+      "capacity": 18,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 10,
+          "reward": 27,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 17,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 5,
+          "reward": 27,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        2,
+        3,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (80) while staying within capacity (14/18).",
+      "difficulty": "hard",
+      "phase": "training",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.75,
+        "optimalityGap": 17,
+        "densityVariance": 5.9868749999999995
+      }
+    }
+  ],
+  "test2": [
+    {
+      "id": 503,
+      "capacity": 28,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 12,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 21,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 13,
+          "reward": 22,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 9,
+          "reward": 34,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (100) while staying within capacity (28/28).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 1,
+        "slackRatio": 0.6829268292682927,
+        "optimalityGap": 21,
+        "densityVariance": 0.7163470099167215
+      }
+    },
+    {
+      "id": 493,
+      "capacity": 15,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 19,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 5,
+          "reward": 33,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (103) while staying within capacity (15/15).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.625,
+        "optimalityGap": 33,
+        "densityVariance": 6.124444444444444
+      }
+    },
+    {
+      "id": 477,
+      "capacity": 16,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 21,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 4,
+          "reward": 27,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (97) while staying within capacity (14/16).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7272727272727273,
+        "optimalityGap": 13,
+        "densityVariance": 5.265950520833333
+      }
+    },
+    {
+      "id": 387,
+      "capacity": 16,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 23,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 4,
+          "reward": 28,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 7,
+          "reward": 18,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 10,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (69) while staying within capacity (15/16).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.64,
+        "optimalityGap": 18,
+        "densityVariance": 5.76937181122449
+      }
+    },
+    {
+      "id": 391,
+      "capacity": 17,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 27,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 24,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 24,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 9,
+          "reward": 19,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (51) while staying within capacity (11/17).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6071428571428571,
+        "optimalityGap": 0,
+        "densityVariance": 1.4934259259259262
+      }
+    },
+    {
+      "id": 550,
+      "capacity": 23,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 7,
+          "reward": 34,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 30,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 10,
+          "reward": 27,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 7,
+          "reward": 26,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (90) while staying within capacity (21/23).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7419354838709677,
+        "optimalityGap": 26,
+        "densityVariance": 0.6347321428571425
+      }
+    },
+    {
+      "id": 585,
+      "capacity": 27,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 7,
+          "reward": 18,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 15,
+          "reward": 40,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (128) while staying within capacity (27/27).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7941176470588235,
+        "optimalityGap": 22,
+        "densityVariance": 7.153061224489797
+      }
+    },
+    {
+      "id": 385,
+      "capacity": 21,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 28,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 26,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 23,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 11,
+          "reward": 20,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (77) while staying within capacity (18/21).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7241379310344828,
+        "optimalityGap": 3,
+        "densityVariance": 8.590373431282524
+      }
+    },
+    {
+      "id": 474,
+      "capacity": 17,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 11,
+          "reward": 15,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 5,
+          "reward": 17,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (87) while staying within capacity (15/17).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6538461538461539,
+        "optimalityGap": 17,
+        "densityVariance": 8.036611570247935
+      }
+    },
+    {
+      "id": 329,
+      "capacity": 18,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 27,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 5,
+          "reward": 26,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 21,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 11,
+          "reward": 20,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (74) while staying within capacity (18/18).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6206896551724138,
+        "optimalityGap": 21,
+        "densityVariance": 4.134508006198347
+      }
+    },
+    {
+      "id": 409,
+      "capacity": 20,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 23,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 12,
+          "reward": 17,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (93) while staying within capacity (15/20).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7407407407407407,
+        "optimalityGap": 23,
+        "densityVariance": 7.331996527777777
+      }
+    },
+    {
+      "id": 434,
+      "capacity": 21,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 29,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 32,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 11,
+          "reward": 24,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 5,
+          "reward": 35,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (96) while staying within capacity (17/21).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.75,
+        "optimalityGap": 8,
+        "densityVariance": 3.178981278461798
+      }
+    },
+    {
+      "id": 456,
+      "capacity": 15,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 9,
+          "reward": 20,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (70) while staying within capacity (10/15).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6,
+        "optimalityGap": 0,
+        "densityVariance": 5.743055555555555
+      }
+    },
+    {
+      "id": 526,
+      "capacity": 27,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 7,
+          "reward": 37,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 14,
+          "reward": 26,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 26,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 14,
+          "reward": 43,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (80) while staying within capacity (21/27).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 2,
+        "slackRatio": 0.6136363636363636,
+        "optimalityGap": 11,
+        "densityVariance": 1.5609528533635675
+      }
+    },
+    {
+      "id": 350,
+      "capacity": 18,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 30,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 5,
+          "reward": 28,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 25,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 19,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (83) while staying within capacity (16/18).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6923076923076923,
+        "optimalityGap": 6,
+        "densityVariance": 9.5969921875
+      }
+    },
+    {
+      "id": 515,
+      "capacity": 19,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 6,
+          "reward": 30,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 9,
+          "reward": 31,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (118) while staying within capacity (18/19).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7037037037037037,
+        "optimalityGap": 30,
+        "densityVariance": 4.127173091458806
+      }
+    },
+    {
+      "id": 591,
+      "capacity": 19,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 11,
+          "reward": 42,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 8,
+          "reward": 27,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (88) while staying within capacity (12/19).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6129032258064516,
+        "optimalityGap": 1,
+        "densityVariance": 4.994793039245657
+      }
+    },
+    {
+      "id": 324,
+      "capacity": 14,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 30,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 5,
+          "reward": 28,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 12,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 8,
+          "reward": 11,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (58) while staying within capacity (8/14).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.5833333333333334,
+        "optimalityGap": 16,
+        "densityVariance": 12.5423046875
+      }
+    },
+    {
+      "id": 431,
+      "capacity": 24,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 34,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 8,
+          "reward": 30,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 30,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 11,
+          "reward": 26,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (94) while staying within capacity (21/24).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.75,
+        "optimalityGap": 4,
+        "densityVariance": 2.6331456611570245
+      }
+    },
+    {
+      "id": 368,
+      "capacity": 16,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 27,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 5,
+          "reward": 24,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 7,
+          "reward": 21,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 9,
+          "reward": 19,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (72) while staying within capacity (15/16).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6666666666666666,
+        "optimalityGap": 21,
+        "densityVariance": 7.022314814814816
+      }
+    },
+    {
+      "id": 417,
+      "capacity": 17,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 4,
+          "reward": 23,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 11,
+          "reward": 19,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (93) while staying within capacity (14/17).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.68,
+        "optimalityGap": 23,
+        "densityVariance": 6.642142303719007
+      }
+    },
+    {
+      "id": 401,
+      "capacity": 20,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 12,
+          "reward": 17,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 12,
+          "reward": 35,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (71) while staying within capacity (16/20).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.5882352941176471,
+        "optimalityGap": 1,
+        "densityVariance": 8.34375
+      }
+    },
+    {
+      "id": 575,
+      "capacity": 21,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 7,
+          "reward": 20,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 8,
+          "reward": 40,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 11,
+          "reward": 34,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 7,
+          "reward": 27,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (74) while staying within capacity (19/21).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 2,
+        "slackRatio": 0.6363636363636364,
+        "optimalityGap": 7,
+        "densityVariance": 0.6990217574633159
+      }
+    },
+    {
+      "id": 321,
+      "capacity": 22,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 3,
+          "reward": 29,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 25,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 23,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 21,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (77) while staying within capacity (19/22).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7586206896551724,
+        "optimalityGap": 2,
+        "densityVariance": 9.273681500377927
+      }
+    },
+    {
+      "id": 506,
+      "capacity": 29,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 6,
+          "reward": 26,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 10,
+          "reward": 42,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 39,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 15,
+          "reward": 19,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (107) while staying within capacity (24/29).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 1,
+        "slackRatio": 0.7435897435897436,
+        "optimalityGap": 23,
+        "densityVariance": 1.9872352430555555
+      }
+    },
+    {
+      "id": 498,
+      "capacity": 14,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 18,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 4,
+          "reward": 26,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (96) while staying within capacity (14/14).",
+      "difficulty": "medium",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6086956521739131,
+        "optimalityGap": 26,
+        "densityVariance": 6.296874999999999
+      }
+    },
+    {
+      "id": 516,
+      "capacity": 26,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 10,
+          "reward": 24,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 13,
+          "reward": 33,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (121) while staying within capacity (25/26).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7428571428571429,
+        "optimalityGap": 9,
+        "densityVariance": 7.530910216157469
+      }
+    },
+    {
+      "id": 563,
+      "capacity": 20,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 13,
+          "reward": 35,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 8,
+          "reward": 26,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (114) while staying within capacity (20/20).",
+      "difficulty": "hard",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6060606060606061,
+        "optimalityGap": 26,
+        "densityVariance": 6.349917639023065
+      }
+    },
+    {
+      "id": 393,
+      "capacity": 18,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 10,
+          "reward": 14,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 3,
+          "reward": 26,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 7,
+          "reward": 17,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 8,
+          "reward": 15,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        2,
+        3,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (58) while staying within capacity (18/18).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6428571428571429,
+        "optimalityGap": 15,
+        "densityVariance": 8.714689891581633
+      }
+    },
+    {
+      "id": 371,
+      "capacity": 17,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 28,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 5,
+          "reward": 25,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 21,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 19,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (53) while staying within capacity (10/17).",
+      "difficulty": "easy",
+      "phase": "benchmark",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.5862068965517241,
+        "optimalityGap": 4,
+        "densityVariance": 2.6018749999999997
+      }
+    }
+  ],
+  "test3": [
+    {
+      "id": 806,
+      "capacity": 18,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 7,
+          "reward": 23,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 12,
+          "reward": 35,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (88) while staying within capacity (12/18).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.5806451612903226,
+        "optimalityGap": 8,
+        "densityVariance": 6.033189838435375
+      }
+    },
+    {
+      "id": 619,
+      "capacity": 21,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 11,
+          "reward": 20,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 7,
+          "reward": 28,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (98) while staying within capacity (17/21).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.75,
+        "optimalityGap": 8,
+        "densityVariance": 6.877410468319559
+      }
+    },
+    {
+      "id": 873,
+      "capacity": 36,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 12,
+          "reward": 41,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 16,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 15,
+          "reward": 38,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 14,
+          "reward": 32,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (95) while staying within capacity (33/36).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 2,
+        "slackRatio": 0.7659574468085106,
+        "optimalityGap": 6,
+        "densityVariance": 0.17787804705215418
+      }
+    },
+    {
+      "id": 755,
+      "capacity": 30,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 11,
+          "reward": 38,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 14,
+          "reward": 16,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 33,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 8,
+          "reward": 42,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        3,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (113) while staying within capacity (27/30).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7317073170731707,
+        "optimalityGap": 22,
+        "densityVariance": 2.252780790131135
+      }
+    },
+    {
+      "id": 807,
+      "capacity": 21,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 9,
+          "reward": 44,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 11,
+          "reward": 23,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 10,
+          "reward": 43,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 5,
+          "reward": 23,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (87) while staying within capacity (19/21).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 2,
+        "slackRatio": 0.6,
+        "optimalityGap": 20,
+        "densityVariance": 1.2202848561371291
+      }
+    },
+    {
+      "id": 728,
+      "capacity": 28,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 12,
+          "reward": 21,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 10,
+          "reward": 31,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 35,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 12,
+          "reward": 33,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        3,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (68) while staying within capacity (20/28).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6666666666666666,
+        "optimalityGap": 2,
+        "densityVariance": 0.8813671875
+      }
+    },
+    {
+      "id": 854,
+      "capacity": 24,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 14,
+          "reward": 27,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 22,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (110) while staying within capacity (22/24).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6666666666666666,
+        "optimalityGap": 22,
+        "densityVariance": 8.611772959183673
+      }
+    },
+    {
+      "id": 633,
+      "capacity": 24,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 6,
+          "reward": 35,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 32,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 29,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 11,
+          "reward": 25,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (96) while staying within capacity (21/24).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.75,
+        "optimalityGap": 4,
+        "densityVariance": 1.697215718027913
+      }
+    },
+    {
+      "id": 746,
+      "capacity": 19,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 42,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 40,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 14,
+          "reward": 27,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 5,
+          "reward": 30,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (112) while staying within capacity (17/19).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6129032258064516,
+        "optimalityGap": 30,
+        "densityVariance": 5.365140306122449
+      }
+    },
+    {
+      "id": 695,
+      "capacity": 15,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 6,
+          "reward": 29,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 6,
+          "reward": 36,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (72) while staying within capacity (10/15).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6818181818181818,
+        "optimalityGap": 2,
+        "densityVariance": 2.477430555555556
+      }
+    },
+    {
+      "id": 757,
+      "capacity": 22,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 42,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 40,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 40,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 9,
+          "reward": 42,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (124) while staying within capacity (21/22).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7333333333333333,
+        "optimalityGap": 2,
+        "densityVariance": 2.4722902494331067
+      }
+    },
+    {
+      "id": 723,
+      "capacity": 19,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 42,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 40,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 12,
+          "reward": 29,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 6,
+          "reward": 37,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (119) while staying within capacity (18/19).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6333333333333333,
+        "optimalityGap": 37,
+        "densityVariance": 4.571409793083902
+      }
+    },
+    {
+      "id": 630,
+      "capacity": 24,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 8,
+          "reward": 31,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 27,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 11,
+          "reward": 24,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (94) while staying within capacity (21/24).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.75,
+        "optimalityGap": 3,
+        "densityVariance": 3.4630591425619843
+      }
+    },
+    {
+      "id": 683,
+      "capacity": 18,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 16,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 9,
+          "reward": 14,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (70) while staying within capacity (10/18).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6428571428571429,
+        "optimalityGap": 18,
+        "densityVariance": 9.42283950617284
+      }
+    },
+    {
+      "id": 656,
+      "capacity": 22,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 35,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 33,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 28,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 25,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (96) while staying within capacity (21/22).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7096774193548387,
+        "optimalityGap": 3,
+        "densityVariance": 3.0277895880574452
+      }
+    },
+    {
+      "id": 665,
+      "capacity": 24,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 32,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 10,
+          "reward": 29,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 12,
+          "reward": 27,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (97) while staying within capacity (21/24).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7272727272727273,
+        "optimalityGap": 2,
+        "densityVariance": 6.93687181122449
+      }
+    },
+    {
+      "id": 686,
+      "capacity": 24,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 6,
+          "reward": 33,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 8,
+          "reward": 30,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 29,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 27,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (92) while staying within capacity (23/24).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7272727272727273,
+        "optimalityGap": 2,
+        "densityVariance": 1.1090335648148146
+      }
+    },
+    {
+      "id": 759,
+      "capacity": 22,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 7,
+          "reward": 18,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 8,
+          "reward": 23,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 11,
+          "reward": 14,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 6,
+          "reward": 24,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (65) while staying within capacity (21/22).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6875,
+        "optimalityGap": 18,
+        "densityVariance": 0.943157276469472
+      }
+    },
+    {
+      "id": 751,
+      "capacity": 26,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 11,
+          "reward": 41,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 13,
+          "reward": 25,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 7,
+          "reward": 32,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 6,
+          "reward": 42,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        3,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (115) while staying within capacity (24/26).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7027027027027027,
+        "optimalityGap": 16,
+        "densityVariance": 3.335333684796722
+      }
+    },
+    {
+      "id": 818,
+      "capacity": 24,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 14,
+          "reward": 40,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 8,
+          "reward": 24,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (112) while staying within capacity (20/24).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7058823529411765,
+        "optimalityGap": 24,
+        "densityVariance": 6.411989795918367
+      }
+    },
+    {
+      "id": 855,
+      "capacity": 23,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 7,
+          "reward": 21,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 14,
+          "reward": 23,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (109) while staying within capacity (19/23).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.696969696969697,
+        "optimalityGap": 21,
+        "densityVariance": 8.14126275510204
+      }
+    },
+    {
+      "id": 810,
+      "capacity": 27,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 13,
+          "reward": 25,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 13,
+          "reward": 44,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 29,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 38,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (82) while staying within capacity (23/27).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 1,
+        "slackRatio": 0.6585365853658537,
+        "optimalityGap": 9,
+        "densityVariance": 1.9185059171597632
+      }
+    },
+    {
+      "id": 822,
+      "capacity": 25,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 8,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 11,
+          "reward": 34,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 6,
+          "reward": 33,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 40,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        3,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (118) while staying within capacity (24/25).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 2,
+        "slackRatio": 0.7142857142857143,
+        "optimalityGap": 6,
+        "densityVariance": 1.1223770015495866
+      }
+    },
+    {
+      "id": 777,
+      "capacity": 18,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 42,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 40,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 6,
+          "reward": 39,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 7,
+          "reward": 14,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (121) while staying within capacity (18/18).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.72,
+        "optimalityGap": 26,
+        "densityVariance": 5.402895408163266
+      }
+    },
+    {
+      "id": 702,
+      "capacity": 17,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 42,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 40,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 6,
+          "reward": 34,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 10,
+          "reward": 31,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (82) while staying within capacity (12/17).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6071428571428571,
+        "optimalityGap": 6,
+        "densityVariance": 3.512419217687075
+      }
+    },
+    {
+      "id": 675,
+      "capacity": 22,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 36,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 6,
+          "reward": 32,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 9,
+          "reward": 28,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 11,
+          "reward": 25,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (96) while staying within capacity (20/22).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7096774193548387,
+        "optimalityGap": 3,
+        "densityVariance": 3.7181213651668195
+      }
+    },
+    {
+      "id": 870,
+      "capacity": 21,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 5,
+          "reward": 18,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 13,
+          "reward": 38,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (106) while staying within capacity (17/21).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7,
+        "optimalityGap": 18,
+        "densityVariance": 5.721474459606327
+      }
+    },
+    {
+      "id": 611,
+      "capacity": 19,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 4,
+          "reward": 33,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 8,
+          "reward": 31,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 8,
+          "reward": 29,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 12,
+          "reward": 24,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2
+      ],
+      "explanation": "The optimal selection maximizes reward (64) while staying within capacity (12/19).",
+      "difficulty": "easy",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.59375,
+        "optimalityGap": 2,
+        "densityVariance": 5.36328125
+      }
+    },
+    {
+      "id": 817,
+      "capacity": 25,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 45,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 43,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 10,
+          "reward": 15,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 15,
+          "reward": 22,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "The optimal selection maximizes reward (103) while staying within capacity (22/25).",
+      "difficulty": "hard",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.6756756756756757,
+        "optimalityGap": 15,
+        "densityVariance": 10.286772959183672
+      }
+    },
+    {
+      "id": 774,
+      "capacity": 23,
+      "balls": [
+        {
+          "id": 1,
+          "weight": 5,
+          "reward": 42,
+          "color": "bg-red-500"
+        },
+        {
+          "id": 2,
+          "weight": 7,
+          "reward": 40,
+          "color": "bg-blue-500"
+        },
+        {
+          "id": 3,
+          "weight": 13,
+          "reward": 26,
+          "color": "bg-green-500"
+        },
+        {
+          "id": 4,
+          "weight": 5,
+          "reward": 34,
+          "color": "bg-yellow-500"
+        }
+      ],
+      "solution": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "The optimal selection maximizes reward (116) while staying within capacity (17/23).",
+      "difficulty": "medium",
+      "phase": "prediction",
+      "metadata": {
+        "dominanceCount": 3,
+        "slackRatio": 0.7666666666666667,
+        "optimalityGap": 14,
+        "densityVariance": 5.546734693877551
+      }
+    }
+  ],
+  "statistics": {
+    "practice": {
+      "easy": 2,
+      "medium": 2,
+      "hard": 2,
+      "total": 6
+    },
+    "test1": {
+      "easy": 3,
+      "medium": 4,
+      "hard": 3,
+      "total": 10
+    },
+    "test2": {
+      "easy": 10,
+      "medium": 10,
+      "hard": 10,
+      "total": 30
+    },
+    "test3": {
+      "easy": 10,
+      "medium": 10,
+      "hard": 10,
+      "total": 30
+    }
+  }
+}
