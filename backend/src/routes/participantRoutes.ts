@@ -533,7 +533,7 @@ router.get('/api/v1/study-stats', async (req, res) => {
 
     let practiceCount = 0, skillCount = 0, benchmarkCount = 0, strategyCount = 0, finalCount = 0
 
-    participants.forEach((p: Participant) => {
+    participants.forEach((p: any) => {
       if ((p.testPractice as any)?.completed) practiceCount++
       if ((p.testSkill as any)?.completed) skillCount++
       if ((p.testBenchmark as any)?.completed) benchmarkCount++
@@ -680,7 +680,7 @@ router.get('/api/v1/admin/analytics', adminAuth, async (req, res) => {
     
     // Section time analytics
     const sectionTimes: { [key: string]: number[] } = {}
-    participants.forEach((p: Participant) => {
+    participants.forEach((p: any) => {
       const timeTracking: any = p.timeTracking || {}
       ;(timeTracking.sections || []).forEach((section: any) => {
         if (!sectionTimes[section.sectionName]) {
