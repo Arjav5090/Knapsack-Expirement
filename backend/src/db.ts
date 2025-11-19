@@ -1,19 +1,42 @@
-import mongoose from 'mongoose';
+import { PrismaClient } from '@prisma/client';
 
-export async function connectMongo(uri: string) {
-  if (mongoose.connection.readyState === 1) return;
+// Create a single Prisma Client instance
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+
+/**
+ * Connect to PostgreSQL database
+ * @param uri - PostgreSQL connection URI (not used with Prisma, reads from DATABASE_URL env)
+ */
+export async function connectPostgres(uri?: string) {
   try {
-    await mongoose.connect(uri, {
-      autoIndex: true,
-      serverSelectionTimeoutMS: 10000,
-      ssl: true,
-      tls: true,
-      tlsAllowInvalidCertificates: false, // stricter, ensures proper handshake
-    });
-    console.log('[mongo] ✅ connected');
+    // Test the connection
+    await prisma.$connect();
+    console.log('[postgres] ✅ connected');
   } catch (err) {
-    console.error('[mongo] ❌ connection failed:', err);
+    console.error('[postgres] ❌ connection failed:', err);
     throw err;
   }
 }
+
+/**
+ * Disconnect from database
+ */
+export async function disconnectPostgres() {
+  await prisma.$disconnect();
+  console.log('[postgres] 👋 disconnected');
+}
+
+// Handle cleanup on process termination
+process.on('beforeExit', async () => {
+  await disconnectPostgres();
+});

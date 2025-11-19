@@ -1,6 +1,8 @@
 /**
- * Optimized API client with caching, request deduplication, and error handling
+ * API client using axios with caching, request deduplication, and error handling
  */
+
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios'
 
 // Cache for API responses (5 minute TTL)
 const cache = new Map<string, { data: any; timestamp: number }>()
@@ -18,6 +20,49 @@ export const getApiBase = () => {
            : "http://localhost:8787")
 }
 
+// Create axios instance with default config
+const axiosInstance: AxiosInstance = axios.create({
+  baseURL: getApiBase(),
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// Request interceptor
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Add any auth tokens or headers here if needed
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// Response interceptor for error handling
+axiosInstance.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error: AxiosError) => {
+    if (error.response) {
+      // Server responded with error status
+      const errorMessage = (error.response.data as any)?.error || `HTTP ${error.response.status}: Request failed`
+      const customError: any = new Error(errorMessage)
+      customError.status = error.response.status
+      customError.data = error.response.data
+      return Promise.reject(customError)
+    } else if (error.request) {
+      // Request made but no response
+      return Promise.reject(new Error('No response from server. Please check your connection.'))
+    } else {
+      // Something else happened
+      return Promise.reject(new Error(error.message || 'Request failed'))
+    }
+  }
+)
+
 // Clear cache helper
 export const clearCache = (key?: string) => {
   if (key) {
@@ -30,16 +75,14 @@ export const clearCache = (key?: string) => {
 // Optimized fetch with caching, deduplication, and timeout
 export async function apiFetch<T = any>(
   endpoint: string,
-  options: RequestInit = {},
-  useCache = false,
-  timeout = 10000
+  options: AxiosRequestConfig = {},
+  useCache = false
 ): Promise<T> {
-  const apiBase = getApiBase()
-  const url = `${apiBase}${endpoint}`
-  const cacheKey = `${options.method || 'GET'}:${url}:${JSON.stringify(options.body || {})}`
+  const method = options.method || 'GET'
+  const cacheKey = `${method}:${endpoint}:${JSON.stringify(options.data || {})}`
 
-  // Check cache first
-  if (useCache && options.method === 'GET') {
+  // Check cache first for GET requests
+  if (useCache && method === 'GET') {
     const cached = cache.get(cacheKey)
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       return cached.data as T
@@ -51,37 +94,18 @@ export async function apiFetch<T = any>(
     return pendingRequests.get(cacheKey) as Promise<T>
   }
 
-  // Create request with timeout
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
-
-  const requestPromise = fetch(url, {
+  // Make the request
+  const requestPromise = axiosInstance({
+    url: endpoint,
     ...options,
-    signal: controller.signal,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
   })
-    .then(async (res) => {
-      clearTimeout(timeoutId)
-      if (!res.ok) {
-        const error = await res.json().catch(() => ({ 
-          error: `HTTP ${res.status}: Request failed`,
-          status: res.status 
-        }))
-        const errorMessage = new Error(error.error || `HTTP ${res.status}`)
-        ;(errorMessage as any).status = res.status
-        throw errorMessage
-      }
-      return res.json()
-    })
-    .then((data: T) => {
+    .then((response) => {
+      const data = response.data
       // Cache successful GET requests
-      if (useCache && options.method === 'GET') {
+      if (useCache && method === 'GET') {
         cache.set(cacheKey, { data, timestamp: Date.now() })
       }
-      return data
+      return data as T
     })
     .finally(() => {
       pendingRequests.delete(cacheKey)
@@ -101,8 +125,17 @@ export const api = {
   post: <T = any>(endpoint: string, body?: any) =>
     apiFetch<T>(endpoint, {
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
+      data: body,
     }, false),
+  
+  put: <T = any>(endpoint: string, body?: any) =>
+    apiFetch<T>(endpoint, {
+      method: 'PUT',
+      data: body,
+    }, false),
+  
+  delete: <T = any>(endpoint: string) =>
+    apiFetch<T>(endpoint, { method: 'DELETE' }, false),
   
   checkParticipant: (prolificPid: string) =>
     api.get<{ exists: boolean; completed: boolean; participantId?: string }>(
@@ -118,3 +151,5 @@ export const api = {
     }),
 }
 
+// Export axios instance for advanced usage
+export { axiosInstance }

@@ -9,9 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { Clock, Target, Star, ChevronLeft, ChevronRight, Zap } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
-import { getOrGenerateQuestions } from "@/lib/api"
-import { createPhaseQuestions } from "@/lib/question-utils"
-import type { Question } from "@/lib/knapsack-generator"
+import { getPredictionPhaseQuestions, type Question } from "@/lib/participant-loader"
 import { useMemo } from "react"
 
 interface PredictionPhaseProps {
@@ -107,7 +105,7 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
         timeTracker.startQuestion(questionId, 'final')
       }
     }
-  }, [currentQuestion, showInstructions, questions, isComplete, timeTracker, currentQuestionStartTime])
+  }, [currentQuestion, showInstructions, questions, isComplete, timeTracker])
 
   // Load participant ID
   useEffect(() => {
@@ -118,44 +116,21 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
     }
   }, [])
 
-  // Load questions dynamically
+  // Load questions from static JSON
   useEffect(() => {
     if (!participantId) return
 
-    const loadQuestions = async () => {
+    const loadQuestions = () => {
       try {
         setIsLoadingQuestions(true)
         setQuestionLoadError(null)
         
-        console.log("[Final Test] Loading dynamic questions for participant:", participantId)
-        
-        // Load prediction questions (30 questions, descending difficulty)
-        const generatedQuestions = await getOrGenerateQuestions({
-          participantId,
-          phase: 'final',
-          count: 30
-        })
-        
-        console.log("[Final Test] Loaded questions:", generatedQuestions)
+        const generatedQuestions = getPredictionPhaseQuestions()
         setQuestions(generatedQuestions)
         
       } catch (error) {
-        console.error("[Final Test] Failed to load questions from backend:", error)
-        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions from backend')
-        
-        // Fallback to local question generation
-        console.log("[Final Test] Falling back to local question generation")
-        try {
-          const localQuestions = createPhaseQuestions('prediction', 30)
-          console.log("[Final Test] Generated local questions:", localQuestions)
-          setQuestions(localQuestions)
-          setQuestionLoadError(null) // Clear error since we have fallback questions
-        } catch (localError) {
-          console.error("[Final Test] Local question generation also failed:", localError)
-          // If local generation fails, show error and don't proceed
-          setQuestionLoadError("Failed to generate questions. Please refresh the page to try again.")
-        }
-        
+        console.error("[Final Test] Failed to load questions:", error)
+        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions')
       } finally {
         setIsLoadingQuestions(false)
       }
@@ -164,13 +139,13 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
     loadQuestions()
   }, [participantId])
 
-  // Timer
+  // 20-minute countdown timer
   useEffect(() => {
     if (!showInstructions && timeLeft > 0 && !isComplete) {
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
-            handleTimeUp()
+            completeTest()
             return 0
           }
           return prev - 1
@@ -204,10 +179,6 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
         timeSpent, // Add timeSpent directly to answer like skills test
       },
     }))
-  }
-
-  const handleTimeUp = () => {
-    completeTest()
   }
 
   const completeTest = async () => {
@@ -643,6 +614,7 @@ export default function PredictionPhase({ onNext, updateParticipantData }: Predi
             )}
 
             <KnapsackQuestion
+              key={`final-q-${question.id}`}
               question={question}
               onAnswer={handleAnswer}
               isInteractive={!currentAnswer?.confirmed}

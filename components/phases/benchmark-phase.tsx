@@ -8,9 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Clock, BarChart3, Star, ChevronLeft, ChevronRight, Zap } from "lucide-react"
 import KnapsackQuestion from "@/components/knapsack-question"
-import { getOrGenerateQuestions } from "@/lib/api"
-import { createPhaseQuestions } from "@/lib/question-utils"
-import type { Question } from "@/lib/knapsack-generator"
+import { getBenchmarkPhaseQuestions, type Question } from "@/lib/participant-loader"
 
 interface BenchmarkPhaseProps {
   onNext: () => void
@@ -21,9 +19,6 @@ interface BenchmarkPhaseProps {
 // Questions will be loaded dynamically from the backend/generator
 
 export default function BenchmarkPhase({ onNext, updateParticipantData }: BenchmarkPhaseProps) {
-  // Add error logging
-  console.log("[BenchmarkPhase] Component initializing")
-  
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<{
@@ -31,6 +26,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   }>({})
   const [starredQuestions, setStarredQuestions] = useState<Set<number>>(new Set())
   const [showInstructions, setShowInstructions] = useState(true)
+  const [timeLeft, setTimeLeft] = useState(20 * 60) // 20 minutes
   const [isComplete, setIsComplete] = useState(false)
   const timeTracker = useTimeTracker()
   const [showFinishWarning, setShowFinishWarning] = useState(false)
@@ -40,10 +36,8 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   const [questionLoadError, setQuestionLoadError] = useState<string | null>(null)
   const [participantId, setParticipantId] = useState<string | null>(null)
 
-  // API base - static for client component
-  const API_BASE = process.env.NODE_ENV === 'production' 
-    ? "https://knapsack-expirement.onrender.com"
-    : "http://localhost:8787"
+  // API base
+  const API_BASE = useMemo(() => process.env.NEXT_PUBLIC_API_BASE || "https://knapsack-expirement.onrender.com", [])
 
   // Load participant ID
   useEffect(() => {
@@ -54,44 +48,21 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     }
   }, [])
 
-  // Load questions dynamically
+  // Load questions from static JSON
   useEffect(() => {
     if (!participantId) return
 
-    const loadQuestions = async () => {
+    const loadQuestions = () => {
       try {
         setIsLoadingQuestions(true)
         setQuestionLoadError(null)
         
-        console.log("[Benchmark] Loading dynamic questions for participant:", participantId)
-        
-        // Load benchmark questions (30 questions, mixed difficulty)
-        const generatedQuestions = await getOrGenerateQuestions({
-          participantId,
-          phase: 'benchmark',
-          count: 30
-        })
-        
-        console.log("[Benchmark] Loaded questions:", generatedQuestions)
+        const generatedQuestions = getBenchmarkPhaseQuestions()
         setQuestions(generatedQuestions)
         
       } catch (error) {
-        console.error("[Benchmark] Failed to load questions from backend:", error)
-        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions from backend')
-        
-        // Fallback to local question generation
-        console.log("[Benchmark] Falling back to local question generation")
-        try {
-          const localQuestions = createPhaseQuestions('benchmark', 30)
-          console.log("[Benchmark] Generated local questions:", localQuestions)
-          setQuestions(localQuestions)
-          setQuestionLoadError(null) // Clear error since we have fallback questions
-        } catch (localError) {
-          console.error("[Benchmark] Local question generation also failed:", localError)
-          // If local generation fails, show error and don't proceed
-          setQuestionLoadError("Failed to generate questions. Please refresh the page to try again.")
-        }
-        
+        console.error("[Benchmark] Failed to load questions:", error)
+        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions')
       } finally {
         setIsLoadingQuestions(false)
       }
@@ -111,8 +82,25 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     }
   }, [showInstructions, isComplete, timeTracker])
 
-  // Define completeTest before useEffect that uses it
-  const completeTest = useCallback(async () => {
+  // 20-minute countdown timer
+  useEffect(() => {
+    if (!showInstructions && timeLeft > 0 && !isComplete) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            completeTest()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      return () => clearInterval(timer)
+    }
+  }, [showInstructions, timeLeft, isComplete])
+
+  // Complete test function
+  const completeTest = async () => {
     setIsComplete(true)
   
     const correctAnswers = Object.values(answers).filter((a) => a.confirmed && a.correct).length
@@ -120,11 +108,9 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     const confirmedAnswers = Object.values(answers).filter((a) => a.confirmed).length
     const unansweredQuestions = questions.length - confirmedAnswers
     
-    // Calculate points: 2 points per correct, 1 point per unanswered, 0 per incorrect
     const totalPoints = (correctAnswers * 2) + (unansweredQuestions * 1) + (incorrectAnswers * 0)
-    const maxPoints = questions.length * 2 // 30 questions × 2 = 60 max points
+    const maxPoints = questions.length * 2
   
-    // Finalize timing for current question if still active
     const finalQuestionTimes = { ...questionTimes }
     if (currentQuestionStartTime !== null && questions[currentQuestion]) {
       const currentQuestionId = questions[currentQuestion].id
@@ -149,7 +135,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
         maxPoints,
         totalQuestions: questions.length,
         accuracy: correctAnswers / questions.length,
-        timeUsed: timeTracker.getCurrentTime()?.elapsed || 0,
+        timeUsed: 20 * 60 - timeLeft,
         answers: Object.entries(answers).map(([questionId, a]) => ({
           questionId: Number(questionId),
           selected: a.selected,
@@ -169,43 +155,26 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     try {
       const res = await fetch(`${API_BASE}/api/v1/ingest-phase`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
   
       if (!res.ok) throw new Error("Failed to submit benchmark test data")
   
-      console.log("[Benchmark Test] Submission successful ✅")
       updateParticipantData({
         benchmark: payload.data,
         totalScore: totalPoints,
       })
-  
       onNext()
     } catch (err) {
-      console.error("[Benchmark Test] Submission failed ❌", err)
-      // If backend is not available, still proceed to next phase with local data
-      console.log("[Benchmark Test] Backend unavailable, proceeding with local data only")
+      console.error("[Benchmark] Submission failed:", err)
       updateParticipantData({
         benchmark: payload.data,
         totalScore: totalPoints,
       })
       onNext()
     }
-  }, [answers, participantId, questions, API_BASE, updateParticipantData, onNext, timeTracker, questionTimes, currentQuestionStartTime, currentQuestion])
-
-  // Handle completion with useEffect (must be at component level, not conditional)
-  useEffect(() => {
-    if (isComplete) {
-      const timer = setTimeout(() => {
-        completeTest()
-      }, 100) // Small delay to prevent hydration mismatch
-      
-      return () => clearTimeout(timer)
-    }
-  }, [isComplete, completeTest])
+  }
 
   // Track question timing when current question changes
   useEffect(() => {
@@ -248,7 +217,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
         timeTracker.endQuestion()
       }
     }
-  }, [currentQuestion, showInstructions, questions, isComplete, timeTracker, currentQuestionStartTime])
+  }, [currentQuestion, showInstructions, questions, isComplete, timeTracker])
 
   const handleAnswer = (selectedBalls: number[], isCorrect: boolean) => {
     const questionId = questions[currentQuestion].id
@@ -475,18 +444,25 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Top Section with Finish Button */}
-      <div className="mb-6 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-bold text-gray-900">Test 2</h2>
-          <div className="px-3 py-2 rounded-lg text-lg font-medium bg-green-100 text-green-700">
-            Question {currentQuestion + 1} of {questions.length}
+      {/* Top Section with Timer and Finish Button */}
+      <Card className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-2xl font-bold text-gray-900">Test 2</h2>
+              <div className={`px-4 py-3 rounded-xl text-xl font-mono font-bold shadow-lg flex items-center space-x-2 ${
+                timeLeft <= 300 ? "bg-red-500 text-white animate-pulse" : timeLeft <= 600 ? "bg-orange-500 text-white" : "bg-blue-500 text-white"
+              }`}>
+                <Clock className="h-5 w-5" />
+                <span>{formatTime(timeLeft)}</span>
+              </div>
+            </div>
+            <Button onClick={() => setShowFinishWarning(true)} variant="outline" className="bg-red-50 hover:bg-red-100 border-red-200">
+              Finish Test Early
+            </Button>
           </div>
-        </div>
-        <Button onClick={() => setShowFinishWarning(true)} variant="outline" className="bg-red-50 hover:bg-red-100 border-red-200">
-          Finish Test Early
-        </Button>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Top Navigation Panel */}
       <Card className="mb-6">
@@ -600,6 +576,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
             )}
 
             <KnapsackQuestion
+              key={`benchmark-q-${question.id}`}
               question={question}
               onAnswer={handleAnswer}
               isInteractive={!currentAnswer?.confirmed}

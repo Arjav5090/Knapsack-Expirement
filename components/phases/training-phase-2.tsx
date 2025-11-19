@@ -284,18 +284,33 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
 
      try {
        const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://knapsack-expirement.onrender.com"
+       
+       // Add timeout to prevent hanging
+       const controller = new AbortController()
+       const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
        const res = await fetch(`${API_BASE}/api/v1/ingest-phase`, {
          method: "POST",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify(payload),
+         signal: controller.signal
        })
 
-      if (!res.ok) throw new Error("Failed to submit test data")
-      console.log("[Test 1] Submission successful ✅")
+       clearTimeout(timeoutId)
+
+      if (!res.ok) {
+        const text = await res.text()
+        console.error("[Test 1] Server error:", res.status, text)
+        throw new Error(`Failed to submit test data (status ${res.status})`)
+      }
+      
       updateParticipantData({ training2: payload.data, totalScore: totalPoints })
+      onNext()
     } catch (err) {
-      console.error("[Test 1] Submission failed ❌", err)
-      alert("There was an error submitting your test results.")
+      console.error("[Test 1] Failed to submit:", err)
+      // Proceed with local data if backend unavailable
+      updateParticipantData({ training2: payload.data, totalScore: totalPoints })
+      onNext()
     }
   }
 
@@ -477,10 +492,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
               </span>
               <Badge className={`text-white ${difficultyColor}`}>{question.difficulty.toUpperCase()}</Badge>
             </div>
-            <div className={`flex items-center space-x-2 px-3 py-1 rounded-lg ${totalTimeLeft <= 300 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
-              <Clock className="h-4 w-4" />
-              <span className="font-mono font-bold">{formatTime(totalTimeLeft)}</span>
-            </div>
+            
           </div>
           <Progress value={progress} className="h-2" />
         </CardContent>

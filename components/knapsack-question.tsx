@@ -246,7 +246,12 @@ export default function KnapsackQuestion({
         </div>
 
         {/* Items Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div className={`grid gap-4 mb-6 ${
+          question.balls.length === 4 ? 'grid-cols-4' : 
+          question.balls.length === 5 ? 'grid-cols-3' : 
+          question.balls.length === 6 ? 'grid-cols-3' :
+          'grid-cols-2 md:grid-cols-3'
+        }`}>
           {question.balls.map((ball, index) => {
             const isSelected = selectedBalls.includes(ball.id)
             const isSolution = showSolution && question.solution?.includes(ball.id)

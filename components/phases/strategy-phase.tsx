@@ -58,27 +58,12 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   useEffect(() => {
     if (!showInstructions) {
       timeTracker.startSection('strategy')
-      
-      // Start timing for first question
-      if (strategyQuestions[currentQuestion]) {
-        const startTime = Date.now()
-        setCurrentQuestionStartTime(startTime)
-        setQuestionTimes(prev => ({
-          ...prev,
-          [currentQuestion + 1]: {
-            startTime,
-            endTime: undefined,
-            timeSpent: undefined
-          }
-        }))
-        timeTracker.startQuestion(currentQuestion + 1, 'strategy')
-      }
     }
     
     return () => {
       timeTracker.endSection()
     }
-  }, [showInstructions, timeTracker, currentQuestion])
+  }, [showInstructions, timeTracker])
 
   // Track question timing when current question changes
   useEffect(() => {
@@ -112,7 +97,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
       
       timeTracker.startQuestion(currentQuestion + 1, 'strategy')
     }
-  }, [currentQuestion, showInstructions, timeTracker, currentQuestionStartTime])
+  }, [currentQuestion, showInstructions, timeTracker])
 
   const handleAnswerChange = (questionId: number, answer: string) => {
     setAnswers(prev => ({
@@ -171,14 +156,12 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
   }
 
   const completePhase = async () => {
-    // Finalize timing for current question if still active
     let finalAnswers = { ...answers }
     if (currentQuestionStartTime !== null) {
       const endTime = Date.now()
       const timeSpent = endTime - currentQuestionStartTime
       const questionId = currentQuestion + 1
       
-      // Update the current answer with final timeSpent
       finalAnswers = {
         ...finalAnswers,
         [questionId]: {
@@ -188,9 +171,16 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
       }
     }
 
+    const participantId = localStorage.getItem("participantId")
+    if (!participantId) {
+      console.error("[Strategy] No participant ID found")
+      alert("Participant not registered. Please refresh the page.")
+      return
+    }
+
     const payload = {
       phase: "strategy",
-      participantId: localStorage.getItem("participantId"),
+      participantId,
       data: {
         completed: true,
         answers: finalAnswers,
@@ -207,20 +197,18 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
     try {
       const res = await fetch(`${API_BASE}/api/v1/ingest-phase`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
   
       if (!res.ok) throw new Error("Failed to submit strategy phase")
   
-      console.log("[Strategy Phase] Submission successful ✅")
       updateParticipantData({ strategy: payload.data })
       onNext()
     } catch (err) {
-      console.error("[Strategy Phase] Submission failed ❌", err)
-      alert("There was an error submitting your strategy responses.")
+      console.error("[Strategy] Submission failed:", err)
+      updateParticipantData({ strategy: payload.data })
+      onNext()
     }
   }
   
@@ -251,7 +239,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
                 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <p className="text-yellow-800 font-medium">
-                    <strong>Prize Opportunity:</strong> For every text response you give, we will evaluate (by both humans and an AI) how insightful your solutions are. We will randomly pick 3 fellow test takers in the top quarter of insightfulness of answers for an additional prize of $25.
+                    <strong>Prize Opportunity:</strong> For every text response you give, we will evaluate (by both humans and an AI) how insightful your solutions are. We will randomly pick 3 fellow test takers in the top quarter of insightfulness of answers.
                   </p>
                 </div>
 
@@ -315,7 +303,7 @@ export default function StrategyPhase({ onNext, updateParticipantData, benchmark
                 <div className="bg-green-100 border border-green-300 rounded-lg p-4 mb-6">
                   <p className="text-green-800 font-medium">
                     Your responses have been recorded and will be evaluated for insightfulness. 
-                    Remember, the top 25% most insightful responses will be eligible for the additional $25 prize!
+                    
                   </p>
                 </div>
 

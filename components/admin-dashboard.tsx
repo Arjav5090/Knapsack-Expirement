@@ -23,6 +23,18 @@ interface AdminDashboardProps {
   onClose?: () => void
 }
 
+interface TestResult {
+  correctAnswers?: number
+  incorrectAnswers?: number
+  unansweredQuestions?: number
+  totalPoints?: number
+  maxPoints?: number
+  totalQuestions?: number
+  accuracy?: number
+  timeUsed?: number
+  completed?: boolean
+}
+
 interface AnalyticsData {
   overview: {
     totalParticipants: number
@@ -43,7 +55,13 @@ interface AnalyticsData {
     completedAt?: string
     totalStudyTime: number
     sectionsCompleted: number
-    testResults: any
+    testResults: {
+      practice?: TestResult
+      skill?: TestResult
+      benchmark?: TestResult
+      strategy?: any
+      final?: TestResult
+    }
     timeBreakdown: Array<{
       sectionName: string
       timeSpent: number
@@ -298,8 +316,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                         <th className="text-left p-2">Prolific ID</th>
                         <th className="text-left p-2">Registered</th>
                         <th className="text-left p-2">Status</th>
-                        <th className="text-left p-2">Study Time</th>
-                        <th className="text-left p-2">Sections</th>
+                        
                         <th className="text-left p-2">Actions</th>
                       </tr>
                     </thead>
@@ -313,8 +330,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                               {participant.completedAt ? "Completed" : "In Progress"}
                             </Badge>
                           </td>
-                          <td className="p-2">{formatTime(participant.totalStudyTime)}</td>
-                          <td className="p-2">{participant.sectionsCompleted}</td>
+
                           <td className="p-2">
                             <Button 
                               size="sm" 
@@ -384,10 +400,133 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                       </div>
                     </div>
 
+                    {/* Results Summary - All Sections */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Results Summary - All Sections</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        
+                       
+                        {/* Skill Test */}
+                        {participantDetails.testResults?.skill && (
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm font-medium text-gray-600">Test 1 (Skill)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-2 text-sm">
+                                {participantDetails.testResults.skill.totalPoints !== undefined ? (
+                                  <>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600">Score:</span>
+                                      <span className="font-bold text-orange-600">
+                                        {participantDetails.testResults.skill.totalPoints}/{participantDetails.testResults.skill.maxPoints}
+                                      </span>
+                                    </div>
+                                    <Progress 
+                                      value={(participantDetails.testResults.skill.totalPoints / participantDetails.testResults.skill.maxPoints) * 100} 
+                                      className="h-2"
+                                    />
+                                    <div className="flex justify-between text-xs">
+                                      <span className="text-green-600">✓ {participantDetails.testResults.skill.correctAnswers}</span>
+                                      <span className="text-gray-500">− {participantDetails.testResults.skill.unansweredQuestions}</span>
+                                      <span className="text-red-600">✗ {participantDetails.testResults.skill.incorrectAnswers}</span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <span className="text-gray-400 text-xs">Not completed</span>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {/* Benchmark Test */}
+                        {participantDetails.testResults?.benchmark && (
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm font-medium text-gray-600">Test 2 (Benchmark)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-2 text-sm">
+                                {participantDetails.testResults.benchmark.totalPoints !== undefined ? (
+                                  <>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600">Score:</span>
+                                      <span className="font-bold text-purple-600">
+                                        {participantDetails.testResults.benchmark.totalPoints}/{participantDetails.testResults.benchmark.maxPoints}
+                                      </span>
+                                    </div>
+                                    <Progress 
+                                      value={(participantDetails.testResults.benchmark.totalPoints / participantDetails.testResults.benchmark.maxPoints) * 100} 
+                                      className="h-2"
+                                    />
+                                    <div className="flex justify-between text-xs">
+                                      <span className="text-green-600">✓ {participantDetails.testResults.benchmark.correctAnswers}</span>
+                                      <span className="text-gray-500">− {participantDetails.testResults.benchmark.unansweredQuestions}</span>
+                                      <span className="text-red-600">✗ {participantDetails.testResults.benchmark.incorrectAnswers}</span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Time: {Math.floor((participantDetails.testResults.benchmark.timeUsed || 0) / 60)}:{String((participantDetails.testResults.benchmark.timeUsed || 0) % 60).padStart(2, '0')}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <span className="text-gray-400 text-xs">Not completed</span>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {/* Final Test */}
+                        {participantDetails.testResults?.final && (
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm font-medium text-gray-600">Test 3 (Final)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-2 text-sm">
+                                {participantDetails.testResults.final.totalPoints !== undefined ? (
+                                  <>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600">Score:</span>
+                                      <span className="font-bold text-teal-600">
+                                        {participantDetails.testResults.final.totalPoints}/{participantDetails.testResults.final.maxPoints}
+                                      </span>
+                                    </div>
+                                    <Progress 
+                                      value={(participantDetails.testResults.final.totalPoints / participantDetails.testResults.final.maxPoints) * 100} 
+                                      className="h-2"
+                                    />
+                                    <div className="flex justify-between text-xs">
+                                      <span className="text-green-600">✓ {participantDetails.testResults.final.correctAnswers}</span>
+                                      <span className="text-gray-500">− {participantDetails.testResults.final.unansweredQuestions}</span>
+                                      <span className="text-red-600">✗ {participantDetails.testResults.final.incorrectAnswers}</span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Time: {Math.floor((participantDetails.testResults.final.timeUsed || 0) / 60)}:{String((participantDetails.testResults.final.timeUsed || 0) % 60).padStart(2, '0')}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <span className="text-gray-400 text-xs">Not completed</span>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                      </div>
+
+                      {/* Scoring System Explanation */}
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          <strong>Scoring System:</strong> Correct answer = 2 points, Unanswered = 1 point, Incorrect = 0 points
+                        </p>
+                      </div>
+                    </div>
 
                     {/* Test Results */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-3">Test Results & Answers</h3>
+                      <h3 className="text-lg font-semibold mb-3">Detailed Test Results & Answers</h3>
                       <div className="space-y-4">
                         {Object.entries(participantDetails.testResults || {}).map(([testName, testData]: [string, any]) => (
                           testData && (

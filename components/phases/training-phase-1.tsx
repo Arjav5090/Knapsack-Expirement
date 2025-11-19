@@ -8,10 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Target, CheckCircle, XCircle, Zap } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
-import { getOrGenerateQuestions } from "@/lib/api"
-import { createPhaseQuestions } from "@/lib/question-utils"
-import { generateQuestionSet } from "@/lib/knapsack-generator"
-import type { Question } from "@/lib/knapsack-generator"
+import { getTrainingPhase1Questions, getPracticeQuestions, type Question } from "@/lib/participant-loader"
 
 interface TrainingPhase1Props {
   onNext: () => void
@@ -59,121 +56,23 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
       return
     }
 
-    const loadQuestions = async () => {
-      console.log("[Practice] loadQuestions function called")
-      
-      // Set a timeout to force local generation if loading takes too long
-      const timeoutId = setTimeout(() => {
-        console.log("[Practice] Question loading timeout - trying local generation")
-        try {
-          const localQuestions = createPhaseQuestions('training', 6)
-          console.log("[Practice] Timeout fallback - generated local questions:", localQuestions)
-          if (localQuestions && localQuestions.length > 0) {
-            setAllQuestions(localQuestions)
-            setIsLoadingQuestions(false)
-            setQuestionLoadError(null)
-          } else {
-            throw new Error("Timeout fallback returned empty questions")
-          }
-        } catch (error) {
-          console.error("[Practice] Timeout fallback also failed:", error)
-          // Try simple generation as last resort
-          try {
-            const simpleQuestions = generateQuestionSet(6, {
-              numItems: 3,
-              minWeight: 2,
-              maxWeight: 8,
-              minReward: 6,
-              maxReward: 24,
-              difficultyLevel: 'easy',
-              ensureUniqueSolution: false
-            })
-            if (simpleQuestions && simpleQuestions.length > 0) {
-              setAllQuestions(simpleQuestions)
-              setIsLoadingQuestions(false)
-              setQuestionLoadError(null)
-            } else {
-              throw new Error("Simple timeout fallback also failed")
-            }
-          } catch (simpleError) {
-            console.error("[Practice] Simple timeout fallback also failed:", simpleError)
-            setQuestionLoadError("Question generation timed out. Please refresh the page to try again.")
-            setIsLoadingQuestions(false)
-          }
-        }
-      }, 10000) // 10 second timeout
+    const loadQuestions = () => {
+      console.log("[Practice] Loading questions from static JSON")
       
       try {
-        console.log("[Practice] Setting isLoadingQuestions to true")
         setIsLoadingQuestions(true)
         setQuestionLoadError(null)
         
-        console.log("[Practice] Loading dynamic questions for participant:", pid)
+        // Load practice questions from static JSON (instant, no API calls)
+        const questions = getPracticeQuestions()
         
-        // Load initial training questions (6 questions, easy difficulty)
-        const questions = await getOrGenerateQuestions({
-          participantId: pid,
-          phase: 'practice', // Use 'practice' phase for training-phase-1
-          count: 6
-        })
-        
-        clearTimeout(timeoutId) // Clear timeout if successful
-        
-        console.log("[Practice] Loaded questions:", questions)
+        console.log("[Practice] Loaded static questions:", questions.length)
         setAllQuestions(questions)
         
       } catch (error) {
-        clearTimeout(timeoutId) // Clear timeout on error
-        console.error("[Practice] Failed to load questions from backend:", error)
-        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions from backend')
-        
-        // Fallback to local question generation
-        console.log("[Practice] Falling back to local question generation")
-        try {
-          console.log("[Practice] Calling createPhaseQuestions('training', 6)")
-          const localQuestions = createPhaseQuestions('training', 6)
-          console.log("[Practice] Generated local questions:", localQuestions)
-          console.log("[Practice] Number of questions generated:", localQuestions.length)
-          
-          if (localQuestions && localQuestions.length > 0) {
-            setAllQuestions(localQuestions)
-            setQuestionLoadError(null) // Clear error since we have fallback questions
-            console.log("[Practice] Successfully set local questions")
-          } else {
-            throw new Error("Local generation returned empty questions array")
-          }
-        } catch (localError) {
-          console.error("[Practice] Local question generation also failed:", localError)
-          console.error("[Practice] Local error details:", localError)
-          // Try a simpler approach with direct question generation
-          try {
-            console.log("[Practice] Trying simpler question generation approach")
-            const simpleQuestions = generateQuestionSet(6, {
-              numItems: 3,
-              minWeight: 2,
-              maxWeight: 8,
-              minReward: 6,
-              maxReward: 24,
-              difficultyLevel: 'easy',
-              ensureUniqueSolution: false
-            })
-            console.log("[Practice] Simple questions generated:", simpleQuestions)
-            if (simpleQuestions && simpleQuestions.length > 0) {
-              setAllQuestions(simpleQuestions)
-              setQuestionLoadError(null)
-              console.log("[Practice] Successfully set simple questions")
-            } else {
-              throw new Error("Simple generation also returned empty array")
-            }
-          } catch (simpleError) {
-            console.error("[Practice] Simple generation also failed:", simpleError)
-            setQuestionLoadError("Failed to generate questions. Please refresh the page to try again.")
-          }
-        }
-        
+        console.error("[Practice] Failed to load questions:", error)
+        setQuestionLoadError(error instanceof Error ? error.message : 'Failed to load questions')
       } finally {
-        clearTimeout(timeoutId) // Clear timeout in finally block
-        console.log("[Practice] Finally block executed - setting isLoadingQuestions to false")
         setIsLoadingQuestions(false)
       }
     }
@@ -207,7 +106,7 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
     }
   }
 
-  const startExtraPractice = async () => {
+  const startExtraPractice = () => {
     if (!pid) return
     
     try {
@@ -215,12 +114,8 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
       setWantMorePractice(true)
       setIsExtraPractice(true)
       
-      // Generate additional questions for extra practice
-      const extraQuestions = await getOrGenerateQuestions({
-        participantId: pid,
-        phase: 'practice-extra', // Different phase for extra practice
-        count: 4 // 4 additional questions
-      })
+      // Load additional practice questions from static JSON
+      const extraQuestions = getPracticeQuestions()
       
       // Combine original questions with extra ones
       const combinedQuestions = [...allQuestions, ...extraQuestions]
@@ -238,6 +133,8 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
   }
 
   const handleComplete = async () => {
+    console.log("[Practice] handleComplete called")
+    
     if (!pid) {
       alert("Participant not registered yet. Please refresh the page so we can register your session.")
       console.error("[Practice] handleComplete aborted: no participantId")
@@ -257,14 +154,19 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
       },
     }
 
-    console.log("[Practice] Submitting payload →", payload)
-
     try {
+      // Add timeout to prevent hanging
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
       const res = await fetch(`${API_BASE}/api/v1/ingest-phase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
 
       const text = await res.text()
       let json: any = null
@@ -279,9 +181,8 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
       updateParticipantData({ training1: payload.data })
       onNext()
     } catch (err) {
-      console.error("[Practice] ingest-phase error:", err)
-      // If backend is not available, still proceed to next phase with local data
-      console.log("[Practice] Backend unavailable, proceeding with local data only")
+      console.error("[Practice] Failed to submit:", err)
+      // Proceed with local data if backend unavailable
       updateParticipantData({ training1: payload.data })
       onNext()
     }
@@ -299,9 +200,9 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
                 <Zap className="h-8 w-8 text-white animate-pulse" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Generating Dynamic Questions</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Loading Questions</h2>
               <p className="text-gray-600 max-w-md mx-auto">
-                Creating personalized knapsack problems using our sophisticated academic algorithm...
+                Loading practice questions...
               </p>
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
@@ -310,58 +211,8 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
               {questionLoadError && (
                 <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                   Error: {questionLoadError}
-                  <br />
-                  <span className="text-xs">Falling back to backup questions...</span>
                 </div>
               )}
-              <div className="mt-4">
-                <Button 
-                  onClick={() => {
-                    console.log("[Practice] Manual test - generating local questions")
-                    try {
-                      const testQuestions = createPhaseQuestions('training', 6)
-                      console.log("[Practice] Test questions generated:", testQuestions)
-                      if (testQuestions && testQuestions.length > 0) {
-                        setAllQuestions(testQuestions)
-                        setIsLoadingQuestions(false)
-                        setQuestionLoadError(null)
-                        console.log("[Practice] Test questions set successfully")
-                      } else {
-                        throw new Error("Test generation returned empty array")
-                      }
-                    } catch (error) {
-                      console.error("[Practice] Test generation failed:", error)
-                      // Try simple generation
-                      try {
-                        const simpleQuestions = generateQuestionSet(6, {
-                          numItems: 3,
-                          minWeight: 2,
-                          maxWeight: 8,
-                          minReward: 6,
-                          maxReward: 24,
-                          difficultyLevel: 'easy',
-                          ensureUniqueSolution: false
-                        })
-                        if (simpleQuestions && simpleQuestions.length > 0) {
-                          setAllQuestions(simpleQuestions)
-                          setIsLoadingQuestions(false)
-                          setQuestionLoadError(null)
-                          console.log("[Practice] Simple test questions set successfully")
-                        } else {
-                          setQuestionLoadError("Test generation failed - no questions generated")
-                        }
-                      } catch (simpleError) {
-                        console.error("[Practice] Simple test generation also failed:", simpleError)
-                        setQuestionLoadError("Test generation failed - please check console for details")
-                      }
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  Test Local Generation
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>

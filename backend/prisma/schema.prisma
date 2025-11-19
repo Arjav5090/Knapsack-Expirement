@@ -1,0 +1,39 @@
+// Prisma Schema for Knapsack Experiment
+// PostgreSQL database schema (Neon DB - Serverless)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // For migrations
+}
+
+// Participant model
+model Participant {
+  id            String    @id @default(uuid())
+  participantId String    @unique
+  createdAt     DateTime  @default(now())
+  
+  // Prolific data
+  prolificPid       String?   @unique
+  studyId           String?
+  sessionId         String?
+  registeredAt      DateTime?
+  completedAt       DateTime?
+  
+  // Test results stored as JSON
+  testPractice      Json?
+  testSkill         Json?
+  testBenchmark     Json?
+  testStrategy      Json?
+  testFinal         Json?
+  
+  // Time tracking stored as JSON
+  timeTracking      Json?
+  
+  @@index([prolificPid])
+  @@index([participantId])
+}
