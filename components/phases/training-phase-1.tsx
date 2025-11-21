@@ -20,7 +20,7 @@ interface TrainingPhase1Props {
 
 export default function TrainingPhase1({ onNext, updateParticipantData }: TrainingPhase1Props) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<Array<{ questionId: number; selected: number[]; correct: boolean }>>([])
+  const [answers, setAnswers] = useState<Array<{ questionId: number; selected: number[]; correct: boolean; confirmed: boolean }>>([])
   const [showFeedback, setShowFeedback] = useState(false)
   const [lastAnswer, setLastAnswer] = useState<{ selected: number[]; correct: boolean } | null>(null)
   const [showInstructions, setShowInstructions] = useState(true)
@@ -88,6 +88,7 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
       questionId: allQuestions[currentQuestion].id,
       selected: selectedBalls,
       correct: isCorrect,
+      confirmed: true, // User confirmed this answer in practice
     }
     setAnswers((prev) => [...prev, newAnswer])
     setLastAnswer({ selected: selectedBalls, correct: isCorrect })

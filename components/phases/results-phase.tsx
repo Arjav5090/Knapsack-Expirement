@@ -64,17 +64,18 @@ export default function ResultsPhase({ onNext, participantData }: ResultsPhasePr
   const prediction = participantData.prediction || participantData.final || { correctAnswers: 0, totalQuestions: 30, totalPoints: 0, maxPoints: 60 }
 
   // Calculate overall performance using only ONE of benchmark OR final test
-  // Priority: Use final test if available, otherwise use benchmark test
-  const hasFinalTest = (prediction.totalPoints !== undefined && prediction.totalPoints !== null) || 
-                       (prediction.correctAnswers > 0)
-  const hasBenchmarkTest = (benchmark.totalPoints !== undefined && benchmark.totalPoints !== null) || 
-                           (benchmark.correctAnswers > 0)
+  // Use whichever test has the BETTER score
+  const benchmarkPoints = benchmark.totalPoints || 0
+  const finalPoints = prediction.totalPoints || 0
   
-  // Determine which test to use for overall performance
-  const testForOverall = hasFinalTest ? prediction : benchmark
-  const testNameForOverall = hasFinalTest ? "Final Test" : "Benchmark Test"
+  // Determine which test to use for overall performance (better score)
+  const useBenchmark = benchmarkPoints >= finalPoints
+  const testForOverall = useBenchmark ? benchmark : prediction
+  const testNameForOverall = useBenchmark ? "Test 2 (Benchmark)" : "Test 3 (Final)"
+  const notUsedTestName = useBenchmark ? "Test 3 (Final)" : "Test 2 (Benchmark)"
+  const notUsedTestPoints = useBenchmark ? finalPoints : benchmarkPoints
   
-  // Overall performance = Skills Assessment + (Benchmark OR Final Test)
+  // Overall performance = Skills Assessment + (Better of Benchmark OR Final Test)
   const totalPoints = (training2.totalPoints || 0) + (testForOverall.totalPoints || 0)
   const maxTotalPoints = (training2.maxPoints || 20) + (testForOverall.maxPoints || 60)
   const overallPercentage = maxTotalPoints > 0 ? (totalPoints / maxTotalPoints) * 100 : 0
@@ -230,15 +231,22 @@ export default function ResultsPhase({ onNext, participantData }: ResultsPhasePr
                 <div className="bg-white rounded-lg p-4 space-y-2">
                   <h4 className="font-semibold text-sm text-gray-800 mb-2">How Overall Performance is Calculated:</h4>
                   <p className="text-xs text-gray-700 leading-relaxed">
-                    Your overall performance score is calculated by combining your <strong>Skills Assessment</strong> points 
+                    Your overall performance score is calculated by combining your <strong>Test 1 (Skills Assessment)</strong> points 
                     ({training2.totalPoints || 0} out of {training2.maxPoints || 20} points) with your <strong>{testNameForOverall}</strong> points 
                     ({testForOverall.totalPoints || 0} out of {testForOverall.maxPoints || 60} points). 
                     This gives you a total of <strong>{totalPoints} out of {maxTotalPoints} points</strong>, 
                     representing <strong>{overallPercentage.toFixed(1)}%</strong> of the maximum possible score.
                   </p>
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-800">
+                      <strong>Which test was counted:</strong> {testNameForOverall} was used in your final score because it had 
+                      {useBenchmark ? " a higher or equal" : " a higher"} score ({testForOverall.totalPoints || 0} points) 
+                      compared to {notUsedTestName} ({notUsedTestPoints} points).
+                    </p>
+                  </div>
                   <p className="text-xs text-gray-600 mt-2 italic">
-                    Note: Overall performance uses only one main assessment test ({testNameForOverall}) in combination with your Skills Assessment, 
-                    ensuring a balanced evaluation of your problem-solving abilities.
+                    Note: Your final score uses Test 1 (Skills) + the better score between Test 2 (Benchmark) and Test 3 (Final), 
+                    ensuring you receive credit for your best performance.
                   </p>
                 </div>
               </div>

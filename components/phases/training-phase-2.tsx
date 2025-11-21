@@ -154,7 +154,7 @@ const skillsQuestions = [
 export default function TrainingPhase2({ onNext, updateParticipantData }: TrainingPhase2Props) {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<
-    Array<{ questionId: number; selected: number[]; correct: boolean; timeSpent: number }>
+    Array<{ questionId: number; selected: number[]; correct: boolean; confirmed: boolean; timeSpent: number }>
   >([])
   const [showInstructions, setShowInstructions] = useState(true)
   const timeTracker = useTimeTracker()
@@ -210,6 +210,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
       questionId,
       selected: selectedBalls,
       correct: isCorrect,
+      confirmed: true, // User actively confirmed this answer
       timeSpent,
     }
 
@@ -225,6 +226,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
       questionId: skillsQuestions[currentQuestion].id,
       selected: [],
       correct: false,
+      confirmed: false, // User skipped this question
       timeSpent: Math.round(timeSpent / 1000),
     }
 
@@ -239,6 +241,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
       questionId: q.id,
       selected: [],
       correct: false,
+      confirmed: false, // Time ran out, no confirmation
       timeSpent: 0,
     }))
     setAnswers((prev) => [...prev, ...remaining])
@@ -524,6 +527,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
                 questionId: question.id,
                 selected: [],
                 correct: false,
+                confirmed: false, // Per-question timer expired
                 timeSpent: Math.round(timeSpent / 1000),
               }
               setAnswers((prev) => [...prev, newAnswer])

@@ -159,7 +159,9 @@ router.post('/api/v1/register-prolific', async (req, res) => {
     })
   }
 
-  // Check if this Prolific participant already exists
+  // TEMPORARILY DISABLED FOR TESTING: Check if this Prolific participant already exists
+  // TODO: Re-enable this before production launch
+  /*
   const existingParticipant = await prisma.participant.findFirst({ 
     where: { prolificPid }
   })
@@ -181,15 +183,21 @@ router.post('/api/v1/register-prolific', async (req, res) => {
       isExisting: true
     })
   }
+  */
+  console.log(`[Backend] TEST MODE: Allowing new participant creation (duplicate check disabled)`)
 
   // Create new participant with Prolific data
   try {
     const id = crypto.randomUUID()
     
+    // TEST MODE: Append timestamp to prolificPid to allow duplicates
+    const uniqueProlificPid = `${prolificPid}_${Date.now()}`
+    console.log(`[Backend] TEST MODE: Using unique prolificPid: ${uniqueProlificPid}`)
+    
     const newDoc = await prisma.participant.create({
       data: {
         participantId: id,
-        prolificPid,
+        prolificPid: uniqueProlificPid,
         studyId,
         sessionId,
         registeredAt: new Date(),
