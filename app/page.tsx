@@ -68,6 +68,15 @@ export default function KnapsackExperiment() {
     const studyId = urlParams.get('STUDY_ID') 
     const sessionId = urlParams.get('SESSION_ID')
     
+    // DEBUG: Log parameters to help troubleshoot
+    console.log('[Access Check] Prolific Parameters:', {
+      prolificPid,
+      studyId,
+      sessionId,
+      fullURL: window.location.href,
+      searchParams: window.location.search
+    })
+    
     // Set Prolific parameters
     setProlificParams({
       prolificPid,
@@ -75,19 +84,52 @@ export default function KnapsackExperiment() {
       sessionId,
     })
 
+    // TEMPORARILY DISABLED FOR TESTING: Access restriction removed
+    // TODO: Re-enable before production launch
+    /*
     // SECURITY: Only allow access with valid Prolific parameters
-    if (!prolificPid || !studyId || !sessionId) {
+    // Check if parameters are template variables (not replaced by Prolific)
+    const hasTemplateVariables = prolificPid?.includes('{{') || studyId?.includes('{{') || sessionId?.includes('{{')
+    
+    if (!prolificPid || !studyId || !sessionId || hasTemplateVariables) {
+      console.error('[Access Denied] Invalid or missing parameters:', {
+        hasTemplateVariables,
+        prolificPid: prolificPid || 'MISSING',
+        studyId: studyId || 'MISSING',
+        sessionId: sessionId || 'MISSING'
+      })
       setAccessAllowed(false)
       setIsCheckingAccess(false)
       return
     }
+    */
+    
+    // TEST MODE: Allow access without Prolific parameters
+    console.log('[TEST MODE] Access allowed for everyone')
+    
+    // If no Prolific params, create a test participant
+    if (!prolificPid || !studyId || !sessionId) {
+      console.log('[TEST MODE] No Prolific params, creating test participant')
+      const testId = window.crypto.randomUUID()
+      setParticipantId(testId)
+      localStorage.setItem('participantId', testId)
+      localStorage.setItem('prolificPid', `test-${testId}`)
+      setAccessAllowed(true)
+      setIsCheckingAccess(false)
+      return
+    }
+    
+    console.log('[Access Check] Parameters valid, proceeding with registration...')
 
-    // Always verify with backend first to prevent duplicate participants
+    // TEMPORARILY DISABLED FOR TESTING: Always verify with backend first to prevent duplicate participants
+    // TODO: Re-enable before production launch
     // Check participant status (with caching)
     api.checkParticipant(prolificPid)
       .then((participantStatus) => {
         if (cancelled) return
 
+        // TEST MODE: Allow re-entry even if completed
+        /*
         if (participantStatus.exists && participantStatus.completed) {
           // Clear localStorage if participant completed
           localStorage.removeItem('participantId')
@@ -97,6 +139,7 @@ export default function KnapsackExperiment() {
           setIsCheckingAccess(false)
           return
         }
+        */
 
         if (participantStatus.exists && !participantStatus.completed && participantStatus.participantId) {
           // Use backend's participantId (always authoritative)
