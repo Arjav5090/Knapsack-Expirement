@@ -24,8 +24,8 @@ const sampleQuestions = [
       { id: 3, weight: 4, reward: 16, color: "bg-green-500" },
       { id: 4, weight: 2, reward: 9, color: "bg-yellow-500" },
     ],
-    solution: [2, 3, 4],
-    explanation: "Select balls 2, 3, and 4 for a total weight of 9 (≤10) and reward of 39 points.",
+    solution: [1, 3],
+    explanation: "Select balls 1 and 3 for a total weight of 10 (≤10) and reward of 46 points, using the full capacity.",
   },
   {
     id: 2,

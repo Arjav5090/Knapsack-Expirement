@@ -161,8 +161,8 @@ function getPracticeQuestions(): StaticQuestion[] {
         { id: 3, weight: 2, reward: 8, color: "bg-green-500" },
         { id: 4, weight: 5, reward: 15, color: "bg-yellow-500" }
       ],
-      solution: [1, 3],
-      explanation: "Select items 1 and 3 for total weight 5 and reward 20, staying within capacity 8.",
+      solution: [1, 4],
+      explanation: "Select items 1 and 4 for total weight 8 and reward 27, using the full capacity.",
       difficulty: "easy"
     },
     {
@@ -174,8 +174,8 @@ function getPracticeQuestions(): StaticQuestion[] {
         { id: 3, weight: 5, reward: 18, color: "bg-pink-500" },
         { id: 4, weight: 2, reward: 10, color: "bg-indigo-500" }
       ],
-      solution: [1, 2],
-      explanation: "Select items 1 and 2 for total weight 7 and reward 27, staying within capacity 10.",
+      solution: [2, 3, 4],
+      explanation: "Select items 2, 3, and 4 for total weight 10 and reward 40, using the full capacity.",
       difficulty: "easy"
     },
     {
@@ -187,8 +187,8 @@ function getPracticeQuestions(): StaticQuestion[] {
         { id: 3, weight: 5, reward: 20, color: "bg-teal-500" },
         { id: 4, weight: 2, reward: 8, color: "bg-rose-500" }
       ],
-      solution: [1, 3, 4],
-      explanation: "Select items 1, 3, and 4 for total weight 11 and reward 44, staying within capacity 12.",
+      solution: [1, 2, 3],
+      explanation: "Select items 1, 2, and 3 for total weight 12 and reward 48, using the full capacity.",
       difficulty: "medium"
     },
     {
@@ -200,8 +200,8 @@ function getPracticeQuestions(): StaticQuestion[] {
         { id: 3, weight: 4, reward: 18, color: "bg-amber-500" },
         { id: 4, weight: 6, reward: 22, color: "bg-emerald-500" }
       ],
-      solution: [2, 3, 4],
-      explanation: "Select items 2, 3, and 4 for total weight 13 and reward 55, staying within capacity 15.",
+      solution: [1, 3, 4],
+      explanation: "Select items 1, 3, and 4 for total weight 15 and reward 60, using the full capacity.",
       difficulty: "medium"
     },
     {
@@ -213,8 +213,8 @@ function getPracticeQuestions(): StaticQuestion[] {
         { id: 3, weight: 5, reward: 22, color: "bg-stone-500" },
         { id: 4, weight: 3, reward: 15, color: "bg-slate-500" }
       ],
-      solution: [2, 3, 4],
-      explanation: "Select items 2, 3, and 4 for total weight 12 and reward 55, staying within capacity 18.",
+      solution: [1, 2, 3, 4],
+      explanation: "Select all items 1, 2, 3, and 4 for total weight 18 and reward 79, using the full capacity.",
       difficulty: "hard"
     },
     {
@@ -226,8 +226,8 @@ function getPracticeQuestions(): StaticQuestion[] {
         { id: 3, weight: 5, reward: 25, color: "bg-blue-600" },
         { id: 4, weight: 3, reward: 18, color: "bg-green-600" }
       ],
-      solution: [2, 3, 4],
-      explanation: "Select items 2, 3, and 4 for total weight 12 and reward 63, staying within capacity 20.",
+      solution: [1, 2, 3, 4],
+      explanation: "Select all items 1, 2, 3, and 4 for total weight 19 and reward 91, staying within capacity 20.",
       difficulty: "hard"
     }
   ];
