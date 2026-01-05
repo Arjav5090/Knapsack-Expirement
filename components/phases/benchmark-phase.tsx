@@ -26,7 +26,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
   }>({})
   const [starredQuestions, setStarredQuestions] = useState<Set<number>>(new Set())
   const [showInstructions, setShowInstructions] = useState(true)
-  const [timeLeft, setTimeLeft] = useState(20 * 60) // 20 minutes
+  const [timeLeft, setTimeLeft] = useState(15 * 60) // 15 minutes
   const [isComplete, setIsComplete] = useState(false)
   const timeTracker = useTimeTracker()
   const [showFinishWarning, setShowFinishWarning] = useState(false)
@@ -82,7 +82,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
     }
   }, [showInstructions, isComplete, timeTracker])
 
-  // 20-minute countdown timer
+  // 15-minute countdown timer
   useEffect(() => {
     if (!showInstructions && timeLeft > 0 && !isComplete) {
       const timer = setInterval(() => {
@@ -135,7 +135,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
         maxPoints,
         totalQuestions: questions.length,
         accuracy: correctAnswers / questions.length,
-        timeUsed: 20 * 60 - timeLeft,
+        timeUsed: 15 * 60 - timeLeft,
         answers: Object.entries(answers).map(([questionId, a]) => ({
           questionId: Number(questionId),
           selected: a.selected,
@@ -344,7 +344,7 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
               <div className="space-y-6 text-purple-700">
                 <p className="text-xl">
                   You will complete a test with <strong>30 dynamically generated knapsack questions</strong>. You
-                  have exactly <strong>20 minutes</strong> to complete the test.
+                  have exactly <strong>15 minutes</strong> to complete the test.
                 </p>
 
                 {questionLoadError && (
@@ -481,16 +481,16 @@ export default function BenchmarkPhase({ onNext, updateParticipantData }: Benchm
         </CardHeader>
 
         <CardContent className="p-4">
-          {/* Horizontal Scrollable Question Numbers */}
+          {/* Question Numbers in 2 rows (15 questions each) */}
           <div className="relative">
-            <div className="flex space-x-3 overflow-x-auto pb-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>
               {questions.map((q, index) => {
                 const isActive = index === currentQuestion
                 const isAnswered = answers[q.id]?.confirmed
                 const isStarred = starredQuestions.has(index)
 
                 return (
-                  <div key={q.id} className="relative flex-shrink-0">
+                  <div key={q.id} className="relative">
                     <button
                       onClick={() => navigateToQuestion(index)}
                       className={`

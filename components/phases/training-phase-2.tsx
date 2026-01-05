@@ -354,7 +354,6 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
               <div className="space-y-6 text-orange-700">
                 <p className="text-xl">
                   In this section, you will complete <strong>10 questions</strong> in Test 1.
-                  Once you start, you will have <strong>90 seconds on each question</strong>.
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -364,11 +363,9 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
                       Rules
                     </h4>
                     <ul className="text-lg space-y-3">
-                      <li>• You have 90 seconds to complete each question.</li>
                       <li>• <strong>You cannot come back to previous questions after seeing later questions</strong>, so answer questions you wish before moving on.</li>
-                      <li>• <strong>Guessing is penalized!</strong> Please only answer questions you wish to answer.</li>
-                      <li>• Only questions confirmed are considered answered, unconfirmed questions are considered unanswered!</li>
-                      <li>• Auto-submit when time runs out.</li>
+                      <li>• <strong>Guessing is penalized!</strong> Skip questions you do not want to answer.</li>
+                      <li>• Auto-skip when timed out.</li>
                     </ul>
                   </div>
 
@@ -385,7 +382,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
                         • <strong>Incorrect answers</strong>: You are NOT rewarded <strong>probability points</strong>
                       </li>
                       <li>
-                        • <strong>Unanswered questions</strong>: You are rewarded 1 <strong>probability point</strong>
+                        • <strong>Unanswered/Skipped</strong>: You are rewarded 1 <strong>probability point</strong>
                       </li>
                     </ul>
                   </div>
@@ -394,11 +391,10 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
                 <div className="bg-red-100 border border-red-300 rounded-lg p-6">
                   <div className="flex items-center mb-4">
                     <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
-                    <h4 className="text-xl font-semibold text-red-800">Important Reminders</h4>
+                    <h4 className="text-xl font-semibold text-red-800">Important Reminder</h4>
                   </div>
                   <ul className="text-lg text-red-700 space-y-3">
                     <li>• If you attempted a question but do not wish to answer it, no need to deselect the balls, just leave the question unconfirmed.</li>
-                    <li>• Focus on accuracy over speed.</li>
                   </ul>
                 </div>
               </div>
@@ -493,7 +489,6 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
               <span className="text-sm font-medium">
                 Question {currentQuestion + 1} of {skillsQuestions.length}
               </span>
-              <Badge className={`text-white ${difficultyColor}`}>{question.difficulty.toUpperCase()}</Badge>
             </div>
             
           </div>
@@ -503,7 +498,7 @@ export default function TrainingPhase2({ onNext, updateParticipantData }: Traini
 
       <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
         <p className="text-red-700 font-medium text-sm">
-          🚨 Confirm answers or they will be considered unanswered!
+          🚨 Confirm answers or they will be considered unanswered! Or skip if you do not wish to answer.
         </p>
       </div>
 

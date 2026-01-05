@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Target, CheckCircle, XCircle, Zap } from "lucide-react"
+import { Target, CheckCircle, XCircle, Zap, ArrowRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import KnapsackQuestion from "@/components/knapsack-question"
 import { getTrainingPhase1Questions, getPracticeQuestions, type Question } from "@/lib/participant-loader"
@@ -26,6 +26,8 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
   const [showInstructions, setShowInstructions] = useState(true)
   const [wantMorePractice, setWantMorePractice] = useState<boolean | null>(null)
   const [isExtraPractice, setIsExtraPractice] = useState(false)
+  const [showTestsInfo, setShowTestsInfo] = useState(false)
+  const [showRewardScheme, setShowRewardScheme] = useState(false)
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(true)
   const [questionLoadError, setQuestionLoadError] = useState<string | null>(null)
@@ -237,40 +239,11 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
               <h3 className="text-2xl font-semibold text-green-800 mb-6">Welcome to the Practice Section!</h3>
 
               <div className="space-y-6 text-green-700">
-                <p className="text-lg">
-                  In this section, you can practice with dynamically generated questions. You will see a total of
-                  <strong> {allQuestions.length} questions</strong> to help you get familiar with the knapsack puzzle.
-                </p>
-
-                {questionLoadError && (
-                  <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4">
-                    <p className="text-yellow-800 text-sm">
-                      <strong>Note:</strong> We encountered an issue generating questions dynamically, so we're using backup questions for this session.
-                    </p>
-                  </div>
-                )}
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="bg-white p-6 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4">🧠 Dynamic Generation</h4>
-                    <ul className="text-base space-y-2">
-                      <li>• Questions are generated using academic algorithms</li>
-                      <li>• Difficulty controlled by dominance relationships</li>
-                      <li>• Each question has a unique optimal solution</li>
-                      <li>• No time constraint - take your time to learn!</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-white p-6 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4">🎯 How to Play</h4>
-                    <ul className="text-base space-y-2">
-                      <li>• Click once to select a ball, click again to deselect</li>
-                      <li>• Maximize reward while staying within capacity</li>
-                      <li>• Click "confirm answer" to lock in your selection</li>
-                      <li>• See solutions and explanations after each answer</li>
-                    </ul>
-                  </div>
-                </div>
+                <ul className="text-lg space-y-3 list-disc list-inside ml-4">
+                  <li>Your answers in this section does not count towards your score. Do not worry about mistakes.</li>
+                  <li>Questions are not timed (yet), so take your time to learn.</li>
+                  <li>Solutions will be revealed to you after you complete a question.</li>
+                </ul>
               </div>
             </div>
 
@@ -278,6 +251,70 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
               <Button onClick={() => setShowInstructions(false)} size="lg" className="bg-green-600 hover:bg-green-700">
                 Start Practice Questions
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show 3 tests info page
+  if (showTestsInfo && !showRewardScheme) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Target className="h-6 w-6 mr-2 text-blue-600" />
+              Important Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-8">
+              <h3 className="text-2xl font-semibold text-blue-800 mb-6">From now on till end of the experiment:</h3>
+              <ol className="text-lg text-blue-700 space-y-4 list-decimal list-inside ml-4">
+                <li>You will see total of <strong>3 knapsack tests</strong> in different formats.</li>
+                <li><strong>Please read instructions on each test carefully.</strong> It contains information <strong>very</strong> relevant for your performance.</li>
+              </ol>
+              <div className="mt-6 text-center">
+                <p className="text-lg text-blue-800 mb-4">Click next to see what rewards you can receive!</p>
+                <Button onClick={() => setShowRewardScheme(true)} size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  Next
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show reward scheme page
+  if (showRewardScheme) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Target className="h-6 w-6 mr-2 text-green-600" />
+              Reward Scheme
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-8">
+              <h3 className="text-2xl font-semibold text-green-800 mb-6">You have a chance to win [x] dollar prize!</h3>
+              <ol className="text-lg text-green-700 space-y-4 list-decimal list-inside ml-4">
+                <li>Your scores on the tests will be converted to <strong>probability points</strong>.</li>
+                <li>Every probability point you gain means an additional probability point of winning the prize.</li>
+              </ol>
+              <div className="mt-6 text-center">
+                <p className="text-lg text-green-800 mb-4">Click next to move to test 1.</p>
+                <Button onClick={handleComplete} size="lg" className="bg-green-600 hover:bg-green-700">
+                  Next
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -330,19 +367,11 @@ export default function TrainingPhase1({ onNext, updateParticipantData }: Traini
                   </p>
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                  <h4 className="font-semibold text-yellow-900 mb-2">Would you like more practice?</h4>
-                  <p className="text-yellow-800 text-sm mb-4">
-                    If you wish to see additional problems, you can press "More Practice" which will allow you to see more knapsack practice questions.
-                  </p>
-                  <div className="flex justify-center space-x-3">
-                    <Button onClick={handleComplete} size="lg" className="bg-blue-600 hover:bg-blue-700">
-                      Continue to Test 1
-                    </Button>
-                    <Button onClick={startExtraPractice} variant="outline" size="lg">
-                      More Practice
-                    </Button>
-                  </div>
+                <div className="text-center">
+                  <Button onClick={() => setShowTestsInfo(true)} size="lg" className="bg-blue-600 hover:bg-blue-700">
+                    Next
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
                 </div>
               </div>
             </div>

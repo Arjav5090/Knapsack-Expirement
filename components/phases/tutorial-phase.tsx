@@ -32,8 +32,9 @@ const sampleQuestions = [
     capacity: 15,
     balls: [
       { id: 1, weight: 10, reward: 60, color: "bg-purple-500" },
-      { id: 2, weight: 20, reward: 100, color: "bg-pink-500" },
+      { id: 2, weight: 5, reward: 40, color: "bg-pink-500" },
       { id: 3, weight: 15, reward: 120, color: "bg-indigo-500" },
+      { id: 4, weight: 4, reward: 30, color: "bg-orange-500" },
     ],
     solution: [3],
     explanation: "Select ball 3 for maximum reward of 120 points with weight exactly 15.",
@@ -347,7 +348,7 @@ export default function TutorialPhase({ onNext }: TutorialPhaseProps) {
       ),
     },
     {
-      title: "How to do the Knapsack Problem",
+      title: "What is a knapsack problem?",
       content: (
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column - Instructions */}
@@ -398,6 +399,13 @@ export default function TutorialPhase({ onNext }: TutorialPhaseProps) {
                     </div>
                   </CardContent>
                 </Card>
+                
+                {/* Goal explanation */}
+                <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mt-4">
+                  <p className="text-sm font-semibold text-yellow-900">
+                    <strong>Your goal:</strong> Select balls to be placed in the Knapsack, maximizing the reward combined on the balls while making sure weight stays below knapsack's capacity!
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -419,30 +427,11 @@ export default function TutorialPhase({ onNext }: TutorialPhaseProps) {
       content: (
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-8 rounded-xl border-2 border-yellow-200">
-            <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">Maximize Your Reward Points!</h3>
-            <p className="text-xl text-gray-700 mb-8 text-center max-w-3xl mx-auto">
-              Select balls to collect the most reward points possible without exceeding the knapsack's capacity.
-            </p>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h4 className="font-semibold text-green-700 mb-4 text-xl">✓ For Every Question</h4>
-                <ul className="text-lg text-gray-600 space-y-3">
-                  <li>• Click once to select a ball, click on a selected ball again to deselect</li>
-                  <li>• Find the combination of selected balls that maximizes the reward while keeping combined weights below capacity</li>
-                  <li>• Once you think you have the right selection, click "confirm answer" to lock in your selection</li>
-                </ul>
-              </div>
-
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h4 className="font-semibold text-blue-700 mb-4 text-xl">🎯 Scoring</h4>
-                <ul className="text-lg text-gray-600 space-y-3">
-                  <li>• Answer is considered correct if and only if you find the most optimal selection of balls</li>
-                  <li>• All-or-nothing scoring system</li>
-                  <li>• Partial credit is not awarded</li>
-                </ul>
-              </div>
-            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Before showing you more knapsack problems, somethings to note:</h3>
+            <ol className="text-lg text-gray-700 space-y-4 list-decimal list-inside ml-4">
+              <li><strong>No partial credit:</strong> you must achieve the highest possible reward while keeping combined weight under capacity for your answer to be considered correct</li>
+              <li>There is a weight/reward counter on every question to help you.</li>
+            </ol>
           </div>
         </div>
       ),

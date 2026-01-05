@@ -30,10 +30,10 @@ const phases = [
   { id: "intro", name: "Welcome", icon: Gift, color: "bg-blue-500" },
   { id: "tutorial", name: "Tutorial", icon: Brain, color: "bg-green-500" },
   { id: "training1", name: "Practice", icon: Target, color: "bg-yellow-500" },
-  { id: "training2", name: "Skills Test", icon: Clock, color: "bg-orange-500" },
-  { id: "benchmark", name: "Benchmark", icon: Trophy, color: "bg-purple-500" },
+  { id: "training2", name: "Test 1", icon: Clock, color: "bg-orange-500" },
+  { id: "benchmark", name: "Test 2", icon: Trophy, color: "bg-purple-500" },
   { id: "strategy", name: "Strategy", icon: Brain, color: "bg-indigo-500" },
-  { id: "prediction", name: "Final Test", icon: Target, color: "bg-red-500" },
+  { id: "prediction", name: "Test 3", icon: Target, color: "bg-red-500" },
   { id: "results", name: "Results", icon: Gift, color: "bg-emerald-500" },
 ]
 
